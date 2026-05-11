@@ -1,15 +1,11 @@
 <script lang="ts">
 	import ExerciseCard from "$lib/components/ExerciseCard.svelte";
-	import StatsRow from "$lib/components/StatsRow.svelte";
 	import { exerciseProgress } from "$lib/stores/exercises";
 
 	const progress = exerciseProgress;
 </script>
 
-<!-- <div class="page"> -->
 <main>
-	<!-- <StatsRow /> -->
-
 	<div class="grid">
 		{#each $progress as ex (ex.id)}
 			<ExerciseCard
@@ -26,15 +22,7 @@
 	</div>
 </main>
 
-<!-- </div> -->
-
 <style>
-	.page {
-		max-width: 860px;
-		margin: 0 auto;
-		padding: 2.5rem 1.5rem 4rem;
-	}
-
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
