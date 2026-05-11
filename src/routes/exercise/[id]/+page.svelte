@@ -51,7 +51,7 @@
 {#if exercise}
 	<div class="page">
 		<nav class="breadcrumb">
-			<a href="/">← Back</a>
+			<a href={resolve("/")}>← Back</a>
 		</nav>
 
 		<header class="ex-header">
