@@ -58,10 +58,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Allenamento — Progressioni</title>
-</svelte:head>
-
 <div class="training-layout">
 	<!-- LEFT: current program -->
 	<section class="col col-program">

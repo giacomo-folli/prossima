@@ -44,10 +44,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{exercise?.name ?? "Exercise"} — Progressioni</title>
-</svelte:head>
-
 {#if exercise}
 	<div class="page">
 		<nav class="breadcrumb">

@@ -6,10 +6,6 @@
 	const progress = exerciseProgress;
 </script>
 
-<svelte:head>
-	<title>Progressioni</title>
-</svelte:head>
-
 <!-- <div class="page"> -->
 <main>
 	<!-- <StatsRow /> -->
