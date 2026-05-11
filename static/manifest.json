@@ -9,13 +9,13 @@
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/apple_logo.png",
+            "src": "/prossima/apple_logo.png",
             "sizes": "180x180",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/logo.png",
+            "src": "/prossima/logo.png",
             "sizes": "1024x1024",
             "type": "image/png",
             "purpose": "any"
