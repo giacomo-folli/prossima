@@ -23,7 +23,7 @@
 	} = $props();
 </script>
 
-<a href={resolve("/exercise/{id}")} class="card" class:done={isComplete}>
+<a href={resolve(`/exercise/${id}`)} class="card" class:done={isComplete}>
 	<div class="card-header">
 		<span class="name">{name}</span>
 		<span class="pct">{pct}%</span>
