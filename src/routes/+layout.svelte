@@ -14,7 +14,6 @@
 	.shell {
 		max-width: 960px;
 		margin: 0 auto;
-		/* padding: 2rem 1.5rem 4rem; */
 		padding: 1.5rem;
 	}
 </style>
