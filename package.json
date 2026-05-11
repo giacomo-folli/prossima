@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "keywords": [],
+  "packageManager": "pnpm@11.0.9",
   "author": "",
   "license": "ISC",
   "devEngines": {
