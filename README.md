@@ -1,42 +1,69 @@
-# sv
+# Progress Tracker
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A simple workout and exercise tracking app built with SvelteKit.
 
-## Creating a project
+The goal of this project is to keep exercise tracking simple and effortless. The app focuses on daily progress, exercise completion, and keeping a clear overview of training activity.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
 
-```sh
-# create a new project
-npx sv create my-app
+* Exercise overview page
+* Individual exercise pages
+* Progress tracking
+
+
+## Development
+
+
+```bash
+# Install dependencies:
+pnpm install
+
+# Run the development server:
+pnpm dev
+
+# Build for production:
+pnpm build
+
+# Preview the production build:
+pnpm preview
 ```
 
-To recreate this project with the same configuration:
 
-```sh
-# recreate this project
-npx sv@0.15.3 create --template minimal --types ts --install npm .
+## Deployment
+
+The project is configured for GitHub Pages using `@sveltejs/adapter-static` and GitHub Actions.
+
+Production builds are automatically deployed when changes are pushed to the `master` branch.
+
+## Project Structure
+
+```text
+src/
+├── lib/
+├── routes/
+├── app.html
+└── app.css
 ```
 
-## Developing
+## Notes
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Because the app is deployed under a GitHub Pages subpath, internal routes use SvelteKit path resolution instead of hardcoded absolute URLs.
 
-```sh
-npm run dev
+## Next Steps
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+Planned improvements for the project:
 
-## Building
+- [x] Local persistence with localStorage
+- [ ] Import/export progress data to `training_plan.yaml` 
+- [ ] Dashboard and statistics
+  -  [ ] Weekly and monthly progress summaries
+- [ ] Better mobile layout
+- [ ] Custom exercise creation
+- [ ] Weekly schedule
+- [ ] Authentication and profile
+- [ ] Offline support
+- [ ] Workout routines and grouped sessions
 
-To create a production version of your app:
+## License
 
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+MIT
