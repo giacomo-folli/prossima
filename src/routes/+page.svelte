@@ -1,11 +1,14 @@
 <script lang="ts">
-	import ExerciseCard from '$lib/components/ExerciseCard.svelte';
-	import { exerciseProgress } from '$lib/stores/exercises';
+	import ExerciseCard from "$lib/components/ExerciseCard.svelte";
+	import StatsRow from "$lib/components/StatsRow.svelte";
+	import { exerciseProgress } from "$lib/stores/exercises";
 
 	const progress = exerciseProgress;
 
 	function overallPct(p: typeof $progress) {
-		return p.length ? Math.round(p.reduce((sum, e) => sum + e.pct, 0) / p.length) : 0;
+		return p.length
+			? Math.round(p.reduce((sum, e) => sum + e.pct, 0) / p.length)
+			: 0;
 	}
 </script>
 
@@ -17,12 +20,12 @@
 	<header class="site-header">
 		<div class="header-inner">
 			<h1>Progressioni</h1>
-			<span class="overall-pct">{overallPct($progress)}% overall</span>
 		</div>
-		<p class="subtitle">{$progress.filter((e) => !e.isComplete).length} exercise{$progress.filter((e) => !e.isComplete).length !== 1 ? 's' : ''} in progress</p>
 	</header>
 
 	<main>
+		<StatsRow />
+
 		<div class="grid">
 			{#each $progress as ex (ex.id)}
 				<ExerciseCard
@@ -48,7 +51,7 @@
 	}
 
 	.site-header {
-		margin-bottom: 2.5rem;
+		margin-bottom: 1rem;
 	}
 
 	.header-inner {

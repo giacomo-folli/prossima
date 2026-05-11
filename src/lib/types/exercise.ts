@@ -3,6 +3,7 @@ export interface Step {
 	label: string;
 	completed: boolean;
 	completedAt?: string;
+	exercise?: Exercise;
 }
 
 export interface Exercise {
