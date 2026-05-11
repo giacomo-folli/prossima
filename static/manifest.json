@@ -2,7 +2,7 @@
     "name": "Prossima",
     "short_name": "Prossima",
     "description": "Track your training progress.",
-    "start_url": "/training",
+    "start_url": "/prossima",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#000000",
