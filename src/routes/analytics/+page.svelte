@@ -25,7 +25,6 @@
 			const done = ex.steps.filter((s) => s.completed).length;
 			const pct =
 				ex.steps.length === 0 ? 0 : Math.round((done / ex.steps.length) * 100);
-			// count appearances in sessions
 			const timesPerformed = $sessions.filter((ses) =>
 				ses.exercises.some((e) => e.exerciseId === ex.id),
 			).length;
@@ -40,7 +39,6 @@
 		}),
 	);
 
-	// sort by times performed desc for the frequency card
 	const byFrequency = $derived(
 		[...exerciseStats].sort((a, b) => b.timesPerformed - a.timesPerformed),
 	);
@@ -48,7 +46,6 @@
 	// ─── session cadence ───────────────────────────────────────────────────────
 	const totalSessions = $derived($sessions.length);
 
-	// sessions per week (last 8 weeks)
 	function getWeekKey(iso: string) {
 		const d = new Date(iso);
 		const jan1 = new Date(d.getFullYear(), 0, 1);
@@ -64,7 +61,6 @@
 			const k = getWeekKey(s.completedAt);
 			map.set(k, (map.get(k) ?? 0) + 1);
 		}
-		// build last 8 weeks
 		const weeks: { label: string; count: number }[] = [];
 		for (let i = 7; i >= 0; i--) {
 			const d = new Date();
@@ -79,21 +75,20 @@
 	const weeksWithSession = $derived(
 		weeklyBuckets().filter((w) => w.count > 0).length,
 	);
+
+	function weeksActive(): number {
+		if ($sessions.length === 0) return 1;
+		const oldest = new Date($sessions[$sessions.length - 1].completedAt);
+		const diffMs = Date.now() - oldest.getTime();
+		return Math.max(1, Math.ceil(diffMs / (7 * 86400000)));
+	}
+
 	const avgPerWeek = $derived(
 		totalSessions === 0
 			? 0
 			: (totalSessions / Math.max(weeksActive(), 1)).toFixed(1),
 	);
 
-	function weeksActive(): number {
-		if ($sessions.length === 0) return 1;
-		const oldest = new Date($sessions[$sessions.length - 1].completedAt);
-		const now = new Date();
-		const diffMs = now.getTime() - oldest.getTime();
-		return Math.max(1, Math.ceil(diffMs / (7 * 86400000)));
-	}
-
-	// longest streak (consecutive days with at least one session)
 	const longestStreak = $derived(() => {
 		if ($sessions.length === 0) return 0;
 		const days = [
@@ -106,9 +101,9 @@
 		let max = 1,
 			cur = 1;
 		for (let i = 1; i < days.length; i++) {
-			const prev = new Date(days[i - 1]);
-			const curr = new Date(days[i]);
-			const diff = (curr.getTime() - prev.getTime()) / 86400000;
+			const diff =
+				(new Date(days[i]).getTime() - new Date(days[i - 1]).getTime()) /
+				86400000;
 			if (diff === 1) {
 				cur++;
 				max = Math.max(max, cur);
@@ -117,7 +112,6 @@
 		return max;
 	});
 
-	// current streak
 	const currentStreak = $derived(() => {
 		if ($sessions.length === 0) return 0;
 		const days = [
@@ -136,15 +130,15 @@
 		if (days[0] !== today && days[0] !== yesterday) return 0;
 		let streak = 1;
 		for (let i = 1; i < days.length; i++) {
-			const prev = new Date(days[i - 1]);
-			const curr = new Date(days[i]);
-			if ((prev.getTime() - curr.getTime()) / 86400000 === 1) streak++;
+			const diff =
+				(new Date(days[i - 1]).getTime() - new Date(days[i]).getTime()) /
+				86400000;
+			if (diff === 1) streak++;
 			else break;
 		}
 		return streak;
 	});
 
-	// last session date
 	const lastSessionDate = $derived(
 		$sessions.length > 0
 			? new Date($sessions[0].completedAt).toLocaleDateString("it-IT", {
@@ -155,7 +149,6 @@
 			: null,
 	);
 
-	// days since last session
 	const daysSinceLast = $derived(
 		$sessions.length > 0
 			? Math.floor(
@@ -165,7 +158,6 @@
 			: null,
 	);
 
-	// max bar width for frequency chart
 	const maxFreq = $derived(
 		Math.max(1, ...byFrequency.map((e) => e.timesPerformed)),
 	);
@@ -190,11 +182,11 @@
 		Nessun dato ancora. Registra qualche sessione e completa qualche step.
 	</p>
 {:else}
-	<!-- ── ROW 1: top stats ───────────────────────────────────────────── -->
+	<!-- ── ROW 1: top stats ── -->
 	<div class="stat-row">
 		<div class="stat-card">
 			<span class="stat-value">{overallPct}%</span>
-			<span class="stat-label">Completamento totale</span>
+			<span class="stat-label">Totale</span>
 			<div class="mini-bar-track">
 				<div class="mini-bar-fill" style="width:{overallPct}%"></div>
 			</div>
@@ -212,9 +204,9 @@
 						: Math.round((fullyDoneExercises / $exercises.length) * 100)}%"
 				></div>
 			</div>
-			<span class="stat-sub">
-				{$exercises.length - fullyDoneExercises} ancora in corso
-			</span>
+			<span class="stat-sub"
+				>{$exercises.length - fullyDoneExercises} ancora in corso</span
+			>
 		</div>
 
 		<div class="stat-card">
@@ -225,9 +217,7 @@
 					Ultima: {lastSessionDate}
 					{#if daysSinceLast === 0}· oggi{:else if daysSinceLast === 1}· ieri{:else}·
 						{daysSinceLast}gg fa{/if}
-				{:else}
-					Nessuna ancora
-				{/if}
+				{:else}Nessuna ancora{/if}
 			</span>
 		</div>
 
@@ -242,52 +232,50 @@
 		</div>
 	</div>
 
-	<!-- ── ROW 2: streaks + cadence ─────────────────────────────────── -->
-	<div class="card-row">
-		<div class="card">
-			<p class="card-title">Streak</p>
-			<div class="streak-row">
-				<div class="streak-item">
-					<span class="streak-val">{currentStreak()}</span>
-					<span class="streak-lbl">giorni attuale</span>
-				</div>
-				<div class="streak-divider"></div>
-				<div class="streak-item">
-					<span class="streak-val">{longestStreak()}</span>
-					<span class="streak-lbl">giorni record</span>
-				</div>
-				<div class="streak-divider"></div>
-				<div class="streak-item">
-					<span class="streak-val">{weeksWithSession}</span>
-					<span class="streak-lbl">settimane attive</span>
-				</div>
+	<!-- ── ROW 2: streak card ── -->
+	<div class="card">
+		<p class="card-title">Streak</p>
+		<div class="streak-row">
+			<div class="streak-item">
+				<span class="streak-val">{currentStreak()}</span>
+				<span class="streak-lbl">giorni attuale</span>
 			</div>
-		</div>
-
-		<!-- weekly bar chart -->
-		<div class="card card-wide">
-			<p class="card-title">
-				Sessioni per settimana <span class="card-title-sub">(ultime 8)</span>
-			</p>
-			<div class="bar-chart">
-				{#each weeklyBuckets() as week}
-					<div class="bar-col">
-						<span class="bar-count">{week.count > 0 ? week.count : ""}</span>
-						<div class="bar-wrap">
-							<div
-								class="bar-fill"
-								class:bar-empty={week.count === 0}
-								style="height: {Math.round((week.count / maxWeekCount) * 100)}%"
-							></div>
-						</div>
-						<span class="bar-label">{week.label}</span>
-					</div>
-				{/each}
+			<div class="streak-divider"></div>
+			<div class="streak-item">
+				<span class="streak-val">{longestStreak()}</span>
+				<span class="streak-lbl">giorni record</span>
+			</div>
+			<div class="streak-divider"></div>
+			<div class="streak-item">
+				<span class="streak-val">{weeksWithSession}</span>
+				<span class="streak-lbl">settimane attive</span>
 			</div>
 		</div>
 	</div>
 
-	<!-- ── ROW 3: frequency per exercise ────────────────────────────── -->
+	<!-- ── ROW 3: weekly bar chart ── -->
+	<div class="card">
+		<p class="card-title">
+			Sessioni per settimana <span class="card-title-sub">(ultime 8)</span>
+		</p>
+		<div class="bar-chart">
+			{#each weeklyBuckets() as week}
+				<div class="bar-col">
+					<span class="bar-count">{week.count > 0 ? week.count : ""}</span>
+					<div class="bar-wrap">
+						<div
+							class="bar-fill"
+							class:bar-empty={week.count === 0}
+							style="height: {Math.round((week.count / maxWeekCount) * 100)}%"
+						></div>
+					</div>
+					<span class="bar-label">{week.label}</span>
+				</div>
+			{/each}
+		</div>
+	</div>
+
+	<!-- ── ROW 4: frequency per exercise ── -->
 	<div class="card">
 		<p class="card-title">Frequenza per esercizio</p>
 		<ul class="freq-list">
@@ -307,7 +295,7 @@
 		</ul>
 	</div>
 
-	<!-- ── ROW 4: per-exercise progress breakdown ────────────────────── -->
+	<!-- ── ROW 5: per-exercise progress breakdown ── -->
 	<div class="card">
 		<p class="card-title">Progressione per esercizio</p>
 		<ul class="prog-list">
@@ -329,7 +317,7 @@
 
 <style>
 	.page-header {
-		margin-bottom: 2rem;
+		margin-bottom: 1.5rem;
 	}
 
 	h1 {
@@ -351,38 +339,59 @@
 		font-size: 0.9rem;
 	}
 
-	/* ── stat row ──────────────────────────────────────────── */
+	/* ── stat row: 2-col on mobile, 4-col on desktop ── */
 	.stat-row {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 0.75rem;
-		margin-bottom: 0.75rem;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.6rem;
+		margin-bottom: 0.6rem;
+	}
+
+	@media (min-width: 640px) {
+		.stat-row {
+			grid-template-columns: repeat(4, 1fr);
+			gap: 0.75rem;
+			margin-bottom: 0.75rem;
+		}
 	}
 
 	.stat-card {
 		background: var(--color-card);
 		border: 1px solid var(--color-border);
 		border-radius: 10px;
-		padding: 1.1rem 1.25rem;
+		padding: 0.9rem 1rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.15rem;
+		gap: 0.12rem;
+	}
+
+	@media (min-width: 640px) {
+		.stat-card {
+			padding: 1.1rem 1.25rem;
+		}
 	}
 
 	.stat-value {
-		font-size: 1.9rem;
+		font-size: 1.55rem;
 		font-weight: 700;
 		letter-spacing: -0.04em;
 		color: var(--color-text);
 		line-height: 1;
 	}
 
+	@media (min-width: 640px) {
+		.stat-value {
+			font-size: 1.9rem;
+		}
+	}
+
 	.stat-label {
-		font-size: 0.72rem;
+		font-size: 0.67rem;
 		text-transform: uppercase;
-		letter-spacing: 0.06em;
+		letter-spacing: 0.05em;
 		color: var(--color-muted);
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.4rem;
+		margin-top: 0.4rem;
 	}
 
 	.mini-bar-track {
@@ -391,7 +400,7 @@
 		background: var(--color-track);
 		border-radius: 2px;
 		overflow: hidden;
-		margin-bottom: 0.4rem;
+		margin-bottom: 0.35rem;
 	}
 
 	.mini-bar-fill {
@@ -402,37 +411,34 @@
 	}
 
 	.stat-sub {
-		font-size: 0.72rem;
+		font-size: 0.68rem;
 		color: var(--color-muted);
+		line-height: 1.3;
 	}
 
-	/* ── generic card ──────────────────────────────────────── */
-	.card-row {
-		display: grid;
-		grid-template-columns: 1fr 2fr;
-		gap: 0.75rem;
-		margin-bottom: 0.75rem;
-	}
-
+	/* ── generic card ── */
 	.card {
 		background: var(--color-card);
 		border: 1px solid var(--color-border);
 		border-radius: 10px;
-		padding: 1.1rem 1.25rem;
-		margin-bottom: 0.75rem;
+		padding: 1rem;
+		margin-bottom: 0.6rem;
+	}
+
+	@media (min-width: 640px) {
+		.card {
+			padding: 1.1rem 1.25rem;
+			margin-bottom: 0.75rem;
+		}
 	}
 
 	.card:last-child {
 		margin-bottom: 0;
 	}
 
-	.card-row .card {
-		margin-bottom: 0;
-	}
-
 	.card-title {
-		margin: 0 0 1rem;
-		font-size: 0.72rem;
+		margin: 0 0 0.9rem;
+		font-size: 0.7rem;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: var(--color-muted);
@@ -444,11 +450,10 @@
 		letter-spacing: 0;
 	}
 
-	/* ── streak ────────────────────────────────────────────── */
+	/* ── streak ── */
 	.streak-row {
 		display: flex;
 		align-items: center;
-		gap: 0;
 	}
 
 	.streak-item {
@@ -460,32 +465,45 @@
 	}
 
 	.streak-val {
-		font-size: 2rem;
+		font-size: 1.75rem;
 		font-weight: 700;
 		letter-spacing: -0.04em;
 		color: var(--color-text);
 		line-height: 1;
 	}
 
+	@media (min-width: 640px) {
+		.streak-val {
+			font-size: 2rem;
+		}
+	}
+
 	.streak-lbl {
-		font-size: 0.68rem;
+		font-size: 0.65rem;
 		color: var(--color-muted);
 		text-align: center;
 	}
 
 	.streak-divider {
 		width: 1px;
-		height: 2.5rem;
+		height: 2.25rem;
 		background: var(--color-border);
 		flex-shrink: 0;
 	}
 
-	/* ── weekly bar chart ──────────────────────────────────── */
+	/* ── weekly bar chart ── */
 	.bar-chart {
 		display: flex;
 		align-items: flex-end;
-		gap: 0.5rem;
-		height: 100px;
+		gap: 0.3rem;
+		height: 80px;
+	}
+
+	@media (min-width: 480px) {
+		.bar-chart {
+			gap: 0.5rem;
+			height: 100px;
+		}
 	}
 
 	.bar-col {
@@ -494,14 +512,14 @@
 		flex-direction: column;
 		align-items: center;
 		height: 100%;
-		gap: 0.25rem;
+		gap: 0.2rem;
 	}
 
 	.bar-count {
-		font-size: 0.65rem;
+		font-size: 0.6rem;
 		color: var(--color-muted);
 		font-variant-numeric: tabular-nums;
-		min-height: 0.9rem;
+		min-height: 0.85rem;
 	}
 
 	.bar-wrap {
@@ -521,46 +539,56 @@
 
 	.bar-fill.bar-empty {
 		background: var(--color-track);
-		min-height: 3px;
 		height: 3px !important;
 	}
 
 	.bar-label {
-		font-size: 0.62rem;
+		font-size: 0.58rem;
 		color: var(--color-muted);
 		white-space: nowrap;
 	}
 
-	/* ── frequency list ────────────────────────────────────── */
+	/* ── frequency list ── */
 	.freq-list {
 		list-style: none;
 		margin: 0;
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.65rem;
+		gap: 0.6rem;
 	}
 
 	.freq-item {
 		display: grid;
-		grid-template-columns: 130px 1fr 2.5rem;
+		grid-template-columns: 1fr auto;
+		grid-template-rows: auto auto;
+		gap: 0.2rem 0.6rem;
 		align-items: center;
-		gap: 0.75rem;
 	}
 
 	.freq-name {
 		font-size: 0.82rem;
 		color: var(--color-text);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.freq-count {
+		font-size: 0.75rem;
+		color: var(--color-muted);
+		font-variant-numeric: tabular-nums;
+		grid-column: 2;
+		grid-row: 1;
+		text-align: right;
 	}
 
 	.freq-bar-wrap {
-		height: 6px;
+		height: 5px;
 		background: var(--color-track);
 		border-radius: 3px;
 		overflow: hidden;
+		grid-column: 1 / -1;
+		grid-row: 2;
 	}
 
 	.freq-bar-fill {
@@ -568,42 +596,57 @@
 		background: var(--color-accent);
 		border-radius: 3px;
 		transition: width 0.4s ease;
-		min-width: 3px;
 	}
 
 	.freq-bar-fill.freq-bar-zero {
-		background: var(--color-track);
-		min-width: 0;
 		width: 0 !important;
 	}
 
-	.freq-count {
-		font-size: 0.78rem;
-		color: var(--color-muted);
-		font-variant-numeric: tabular-nums;
-		text-align: right;
+	/* on wider screens: name + bar + count in one row */
+	@media (min-width: 480px) {
+		.freq-item {
+			grid-template-columns: 120px 1fr 2.5rem;
+			grid-template-rows: auto;
+			gap: 0.75rem;
+			align-items: center;
+		}
+
+		.freq-name {
+			grid-column: 1;
+			grid-row: 1;
+		}
+		.freq-bar-wrap {
+			grid-column: 2;
+			grid-row: 1;
+			height: 6px;
+		}
+		.freq-count {
+			grid-column: 3;
+			grid-row: 1;
+		}
 	}
 
-	/* ── per-exercise progress ─────────────────────────────── */
+	/* ── per-exercise progress ── */
 	.prog-list {
 		list-style: none;
 		margin: 0;
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.9rem;
+		gap: 0.85rem;
 	}
 
 	.prog-item {
 		display: flex;
 		flex-direction: column;
-		gap: 0.3rem;
+		gap: 0.28rem;
 	}
 
 	.prog-top {
 		display: flex;
 		justify-content: space-between;
 		align-items: baseline;
+		gap: 0.5rem;
 	}
 
 	.prog-name {
@@ -611,6 +654,9 @@
 		font-weight: 500;
 		color: var(--color-text);
 		text-decoration: none;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.prog-name:hover {
@@ -622,6 +668,7 @@
 		font-size: 0.75rem;
 		color: var(--color-muted);
 		font-variant-numeric: tabular-nums;
+		flex-shrink: 0;
 	}
 
 	.prog-bar-track {

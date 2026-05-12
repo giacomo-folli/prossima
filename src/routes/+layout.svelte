@@ -1,8 +1,8 @@
 <script lang="ts">
 	import "../app.css";
 	import Nav from "$lib/components/Nav.svelte";
-
-	let { children } = $props();
+	import type { Snippet } from "svelte";
+	let { children }: { children: Snippet } = $props();
 </script>
 
 <div class="shell">
@@ -14,6 +14,12 @@
 	.shell {
 		max-width: 960px;
 		margin: 0 auto;
-		padding: 1.5rem;
+		padding: 1.25rem 1rem 4rem;
+	}
+
+	@media (min-width: 600px) {
+		.shell {
+			padding: 2rem 1.5rem 4rem;
+		}
 	}
 </style>
