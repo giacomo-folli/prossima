@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 
 	const isTraining = $derived(page.url.pathname === "/training");
@@ -8,10 +9,18 @@
 </script>
 
 <nav class="tab-nav">
-	<a href="/training" class="tab" class:active={isTraining}>Allenamento</a>
-	<a href="/exercises" class="tab" class:active={isExercises}>Esercizi</a>
-	<a href="/settings" class="tab" class:active={isSettings}>Impostazioni</a>
-	<a href="/analytics" class="tab" class:active={isAnalytics}>Analisi</a>
+	<a href={resolve("/training")} class="tab" class:active={isTraining}
+		>Allenamento</a
+	>
+	<a href={resolve("/exercises")} class="tab" class:active={isExercises}
+		>Esercizi</a
+	>
+	<a href={resolve("/settings")} class="tab" class:active={isSettings}
+		>Impostazioni</a
+	>
+	<a href={resolve("/analytics")} class="tab" class:active={isAnalytics}
+		>Analisi</a
+	>
 </nav>
 
 <style>
