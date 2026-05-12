@@ -4,14 +4,14 @@
 	import { sessions } from "$lib/stores/sessions";
 	import type { SessionExercise } from "$lib/types/exercise";
 
-	// Build current program from active steps of each exercise
-	const program = $derived(
+	let program = $derived(
 		$exercises
 			.filter((ex) => ex.currentStepIndex < ex.steps.length)
 			.map((ex) => ({
 				exerciseId: ex.id,
 				exerciseName: ex.name,
 				stepLabel: ex.steps[ex.currentStepIndex]?.label ?? "—",
+				checked: true
 			})),
 	);
 
@@ -22,9 +22,15 @@
 
 	function logSession() {
 		if (program.length === 0) return;
-		const snapshot: SessionExercise[] = program.map((p) => ({ ...p }));
-		sessions.logSession(snapshot);
+		const snapshot: SessionExercise[] = program
+			.filter((ex) => ex.checked)
+			.map((p) => {
+				const { checked, ...rest } = p;
+				return rest;
+			});
+
 		logging = true;
+		sessions.logSession(snapshot);
 		setTimeout(() => (logging = false), 1800);
 	}
 
@@ -79,6 +85,11 @@
 		<ol class="program-list">
 			{#each program as item (item.exerciseId)}
 				<li class="program-item">
+					<input
+						type="checkbox"
+						id={item.exerciseId}
+						bind:checked={item.checked}
+					/>
 					<a
 						href={resolve(`/exercise/${item.exerciseId}`)}
 						class="program-link"
@@ -211,6 +222,10 @@
 
 	.program-item {
 		border-bottom: 1px solid var(--color-border);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 0 0 1rem;
 	}
 
 	.program-item:last-child {
@@ -218,6 +233,7 @@
 	}
 
 	.program-link {
+		width: 100%;
 		display: flex;
 		justify-content: space-between;
 		align-items: baseline;

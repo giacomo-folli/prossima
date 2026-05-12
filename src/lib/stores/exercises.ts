@@ -1,14 +1,14 @@
 import { writable, derived } from 'svelte/store';
 import type { Exercise } from '../types/exercise';
 import { defaultExercises } from '../data/defaultExercises';
-import { loadFromStorage, saveToStorage } from '../utils/storage';
+import { loadExercises, saveExercises } from '../utils/storage';
 
 function createExercisesStore() {
-	const initial = loadFromStorage() ?? defaultExercises;
+	const initial = loadExercises() ?? defaultExercises;
 	const { subscribe, set, update } = writable<Exercise[]>(initial);
 
 	function persist(exercises: Exercise[]) {
-		saveToStorage(exercises);
+		saveExercises(exercises);
 	}
 
 	return {

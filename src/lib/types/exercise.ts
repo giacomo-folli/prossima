@@ -21,6 +21,7 @@ export interface SessionExercise {
 
 export interface TrainingSession {
 	id: string;
+	version: string;
 	completedAt: string;
 	exercises: SessionExercise[];
 }

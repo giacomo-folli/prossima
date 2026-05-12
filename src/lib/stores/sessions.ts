@@ -1,6 +1,7 @@
-import { writable } from 'svelte/store';
-import type { TrainingSession, SessionExercise } from '../types/exercise';
-import { loadSessions, saveSessions } from '../utils/storage';
+import { writable } from "svelte/store";
+import type { TrainingSession, SessionExercise } from "../types/exercise";
+import { loadSessions, saveSessions } from "../utils/storage";
+import { hashString } from "$lib/utils/hash";
 
 function createSessionsStore() {
 	const initial = loadSessions() ?? [];
@@ -9,11 +10,17 @@ function createSessionsStore() {
 	return {
 		subscribe,
 
-		logSession(exercises: SessionExercise[]) {
+		async logSession(exercises: SessionExercise[]) {
+			const stringId = exercises
+				.map((e) => e.exerciseName + ":" + e.stepLabel)
+				.join("||");
+			const hash = await hashString(stringId);
+
 			const session: TrainingSession = {
 				id: crypto.randomUUID(),
 				completedAt: new Date().toISOString(),
-				exercises
+				version: hash,
+				exercises,
 			};
 			update((sessions) => {
 				const next = [session, ...sessions];
@@ -28,7 +35,7 @@ function createSessionsStore() {
 				saveSessions(next);
 				return next;
 			});
-		}
+		},
 	};
 }
 

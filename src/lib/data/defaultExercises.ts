@@ -1,6 +1,6 @@
 import type { Exercise } from '../types/exercise';
 
-function makeSteps(labels: string[]) {
+export function makeSteps(labels: string[]) {
 	return labels.map((label, i) => ({
 		id: `step-${i}`,
 		label,
