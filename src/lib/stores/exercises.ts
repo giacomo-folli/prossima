@@ -73,7 +73,7 @@ function createExercisesStore() {
 					currentStepIndex: 0,
 				})),
 			);
-			persist(defaultExercises);
+			persist(newSet);
 		},
 
 		clearProgress() {
