@@ -1,7 +1,7 @@
-import { writable, derived } from 'svelte/store';
-import type { Exercise } from '../types/exercise';
-import { defaultExercises } from '../data/defaultExercises';
-import { loadExercises, saveExercises } from '../utils/storage';
+import { writable, derived } from "svelte/store";
+import type { Exercise } from "../types/exercise";
+import { defaultExercises } from "../data/defaultExercises";
+import { loadExercises, saveExercises } from "../utils/storage";
 
 function createExercisesStore() {
 	const initial = loadExercises() ?? defaultExercises;
@@ -60,14 +60,21 @@ function createExercisesStore() {
 			});
 		},
 
-		reset() {
-			set(defaultExercises.map((ex) => ({
-				...ex,
-				steps: ex.steps.map((s) => ({ ...s, completed: false, completedAt: undefined })),
-				currentStepIndex: 0
-			})));
+		reset(exercises?: Exercise[]) {
+			const newSet = exercises || defaultExercises;
+			set(
+				newSet.map((ex) => ({
+					...ex,
+					steps: ex.steps.map((s) => ({
+						...s,
+						completed: false,
+						completedAt: undefined,
+					})),
+					currentStepIndex: 0,
+				})),
+			);
 			persist(defaultExercises);
-		}
+		},
 	};
 }
 
@@ -90,7 +97,7 @@ export const exerciseProgress = derived(exercises, ($exercises) =>
 			pct,
 			current,
 			next,
-			isComplete
+			isComplete,
 		};
-	})
+	}),
 );

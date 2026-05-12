@@ -11,9 +11,9 @@
 
 		if (confirm("Sei sicuro? Questo resetterà i progressi correnti.")) {
 			loading = true;
-			saveExercises(exercises_from_file);
+			// saveExercises(exercises_from_file);
 
-			$exercises = loadExercises() ?? current_exercises;
+			exercises.reset(loadExercises() ?? current_exercises);
 			loading = false;
 		}
 	}
