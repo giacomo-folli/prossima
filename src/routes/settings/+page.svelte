@@ -3,15 +3,87 @@
 	import { sessions } from "$lib/stores/sessions";
 	import { exercisesFileTemplate, parseYamlString } from "$lib/utils/parsing";
 	import { loadExercises } from "$lib/utils/storage";
+	import { onMount } from "svelte";
 
+	const YAML_STORAGE_KEY = "custom_yaml_config";
 	const current_exercises = loadExercises() ?? [];
 
 	let loading = $state(false);
+	let yamlText = $state("");
+	let yamlSaved = $state(true);
+	let yamlDirty = $state(false);
+
+	// Load from localStorage on mount
+	onMount(() => {
+		yamlText = localStorage?.getItem(YAML_STORAGE_KEY) ?? "";
+		yamlSaved = !!localStorage?.getItem(YAML_STORAGE_KEY);
+	});
+
+	function handleTextareaChange() {
+		yamlSaved = false;
+		yamlDirty = true;
+	}
+
+	async function handleLoadFromTextarea() {
+		if (!yamlText.trim()) {
+			alert("Il campo YAML è vuoto.");
+			return;
+		}
+
+		// Save to storage the textarea content
+		localStorage.setItem(YAML_STORAGE_KEY, yamlText);
+		yamlSaved = true;
+		yamlDirty = false;
+
+		try {
+			// Apply the content to the store
+			const parsed = await parseYamlString(yamlText);
+			exercises.reset(parsed ?? current_exercises);
+
+			alert("Configurazione applicata con successo!");
+		} catch {
+			yamlSaved = false;
+			yamlDirty = true;
+
+			alert("Errore nel parsing del YAML.");
+		}
+	}
+
+	// --- TEMPLATE ---
+	async function copyTemplate() {
+		try {
+			await navigator.clipboard.writeText(exercisesFileTemplate);
+			alert("Template copiato!");
+		} catch {
+			alert("Errore nella copia.");
+		}
+	}
+
+	// --- FILE UPLOAD ---
+	async function handleFileUpload(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (!file) return;
+		try {
+			const fileContent = await file.text();
+
+			localStorage.setItem(YAML_STORAGE_KEY, fileContent);
+
+			const parsed = await parseYamlString(fileContent);
+			exercises.reset(parsed ?? current_exercises);
+			yamlText = fileContent;
+			yamlDirty = true;
+			yamlSaved = false;
+			alert("File caricato. Salva nella sezione YAML se vuoi conservarlo.");
+		} catch {
+			alert("Errore nella lettura del file YAML.");
+		}
+	}
+
+	// --- DANGER ZONE ---
 	async function handleResetProgress() {
 		if (
-			confirm(
-				"Sei sicuro? Questo resetterà i progressi correnti.\nQuesto non cancellerà lo storico degli allenamenti",
-			)
+			confirm("Resettare i progressi correnti? Lo storico rimarrà intatto.")
 		) {
 			loading = true;
 			exercises.clearProgress();
@@ -21,131 +93,207 @@
 
 	async function handleClearTrainingHistory() {
 		if (
-			confirm("Sei sicuro? Questo cancellerà lo storico degli allenamenti.")
+			confirm(
+				"ATTENZIONE: Questo cancellerà definitivamente tutto lo storico allenamenti.",
+			)
 		) {
 			loading = true;
 			sessions.clearSessions();
 			loading = false;
 		}
 	}
-
-	async function handleFileUpload(event: Event) {
-		const target = event.target as HTMLInputElement;
-		const file = target.files?.[0];
-
-		if (!file) return;
-		try {
-			const fileContent = await file.text();
-			const parsed = await parseYamlString(fileContent);
-
-			exercises.reset(parsed ?? current_exercises);
-			alert(
-				"File caricato con successo. Ritorna alla home per vedere i cambiamenti.",
-			);
-		} catch (error) {
-			console.error("Error reading file:", error);
-		}
-	}
-
-	async function copyTemplate() {
-		try {
-			await navigator.clipboard.writeText(exercisesFileTemplate);
-			alert("Template copiato negli appunti");
-		} catch (error) {
-			console.error("Copy failed:", error);
-		}
-	}
-
-	async function handleUploadFromClipboard() {
-		try {
-			const clipboardText = await navigator.clipboard.readText();
-			if (!clipboardText) {
-				alert("Il clipboard è vuoto.");
-				return;
-			}
-
-			const parsed = await parseYamlString(clipboardText);
-			exercises.reset(parsed ?? current_exercises);
-			alert(
-				"Contenuto del clipboard caricato con successo. Ritorna alla home per vedere i cambiamenti.",
-			);
-		} catch (error) {
-			console.error("Clipboard read failed:", error);
-			alert(
-				"Impossibile leggere il clipboard. Controlla i permessi del browser.",
-			);
-		}
-	}
 </script>
 
 <div class="settings-container">
-	<div class="upload-zone">
-		<div class="upload-file-section">
-			<div>Carica un file custom (formato .yaml)</div>
-
-			<button class="btn-copy-template" onclick={copyTemplate}
-				>Copia il template</button
-			>
+	<!-- SEZIONE 1: YAML Editor -->
+	<section class="card yaml-section">
+		<div class="section-header">
+			<span class="section-title">Configurazione YAML</span>
+			{#if yamlSaved}
+				<span class="badge badge-saved">● Salvato</span>
+			{:else if yamlDirty}
+				<span class="badge badge-unsaved">● Non salvato</span>
+			{/if}
 		</div>
+		<p class="section-desc">
+			Scrivi o incolla la tua configurazione. Viene salvata nel browser.
+		</p>
 
-		<div class="input-group">
-			<div class="file-input">
-				<input type="file" accept=".yaml" onchange={handleFileUpload} />
-			</div>
-			<div class="clipboard-input">
-				<button class="clipboard-button" onclick={handleUploadFromClipboard}
-					>Incolla dal clipboard</button
+		<textarea
+			class="yaml-textarea"
+			placeholder="Incolla qui il tuo YAML..."
+			bind:value={yamlText}
+			oninput={handleTextareaChange}
+			rows="8"
+			spellcheck="false"
+		></textarea>
+
+		<div class="btn-row">
+			<button class="btn btn-ghost" onclick={copyTemplate}
+				>Copia template</button
+			>
+			<div class="btn-group-right">
+				<button class="btn btn-primary" onclick={handleLoadFromTextarea}
+					>Applica</button
 				>
 			</div>
 		</div>
-	</div>
+	</section>
 
-	<div class="danger-zone">
-		<div>Danger zone!</div>
-		<button
-			class="btn-reset-file"
-			onclick={handleResetProgress}
-			disabled={loading}>Resetta i progressi</button
-		><button
-			class="btn-reset-file"
-			onclick={handleClearTrainingHistory}
-			disabled={loading}>Elimina lo storico allenamenti</button
-		>
-	</div>
+	<!-- SEZIONE 2: File upload -->
+	<section class="card">
+		<div class="section-header">
+			<span class="section-title">Carica da file</span>
+		</div>
+		<p class="section-desc">
+			Carica un file <code>.yaml</code> dal dispositivo. Il contenuto verrà mostrato
+			nell'editor sopra.
+		</p>
+		<label class="file-label">
+			<input type="file" accept=".yaml" onchange={handleFileUpload} />
+			<span class="file-cta">Scegli file .yaml</span>
+		</label>
+	</section>
+
+	<!-- SEZIONE 3: Danger zone -->
+	<section class="card danger-card">
+		<div class="section-header">
+			<span class="section-title danger-title">Danger zone</span>
+		</div>
+		<div class="danger-buttons">
+			<button
+				class="btn btn-danger"
+				onclick={handleResetProgress}
+				disabled={loading}
+			>
+				Resetta i progressi
+			</button>
+			<button
+				class="btn btn-danger"
+				onclick={handleClearTrainingHistory}
+				disabled={loading}
+			>
+				Elimina lo storico allenamenti
+			</button>
+		</div>
+	</section>
 </div>
 
 <style>
-	.upload-file-section {
-		width: 100%;
-		display: flex;
-		gap: 0.5rem;
-		flex-direction: column;
-		justify-content: space-between;
-		align-items: start;
-	}
-
+	/* ---- Base ---- */
 	.settings-container {
 		width: 100%;
 		display: flex;
 		flex-direction: column;
-		justify-content: start;
-		gap: 2rem;
+		gap: 1rem;
 	}
 
-	.danger-zone {
-		background: rgba(255, 0, 0, 0.2);
-		width: 100%;
+	/* ---- Card ---- */
+	.card {
+		background: var(--color-card);
+		border-radius: 10px;
+		padding: 1rem;
 		display: flex;
 		flex-direction: column;
-		justify-content: start;
-		gap: 0.5rem;
-		border: none;
-		border-radius: 7px;
-		padding: 0.5rem;
+		gap: 0.75rem;
 	}
 
+	/* ---- Section header ---- */
+	.section-header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.section-title {
+		font-size: 0.9rem;
+		font-weight: 700;
+		color: var(--color-text);
+	}
+
+	.section-desc {
+		font-size: 0.78rem;
+		color: var(--color-text-muted, rgba(255, 255, 255, 0.5));
+		margin: 0;
+		line-height: 1.4;
+	}
+
+	code {
+		font-size: 0.75rem;
+		background: rgba(255, 255, 255, 0.08);
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+	}
+
+	/* ---- Badges ---- */
+	.badge {
+		font-size: 0.7rem;
+		font-weight: 600;
+		padding: 0.15rem 0.5rem;
+		border-radius: 99px;
+	}
+
+	.badge-saved {
+		color: #4ade80;
+		background: rgba(74, 222, 128, 0.12);
+	}
+
+	.badge-unsaved {
+		color: #fbbf24;
+		background: rgba(251, 191, 36, 0.12);
+	}
+
+	/* ---- Textarea ---- */
+	.yaml-textarea {
+		width: 100%;
+		min-height: 160px;
+		background: rgba(0, 0, 0, 0.25);
+		color: var(--color-text);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 7px;
+		padding: 0.6rem 0.75rem;
+		font-family: "Courier New", monospace;
+		font-size: 0.78rem;
+		line-height: 1.5;
+		resize: vertical;
+		box-sizing: border-box;
+		transition: border-color 0.15s;
+	}
+
+	.yaml-textarea:focus {
+		outline: none;
+		border-color: rgba(255, 255, 255, 0.25);
+	}
+
+	.yaml-textarea::placeholder {
+		color: rgba(255, 255, 255, 0.25);
+	}
+
+	/* ---- Button row ---- */
+	.btn-row {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.btn-group-right {
+		display: flex;
+		gap: 0.5rem;
+		justify-content: flex-end;
+		flex-wrap: wrap;
+	}
+
+	@media (min-width: 480px) {
+		.btn-row {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+		}
+	}
+
+	/* ---- Buttons ---- */
 	button {
-		color: white;
 		border: none;
 		border-radius: 7px;
 		padding: 0.5rem 1rem;
@@ -153,74 +301,100 @@
 		font-weight: 600;
 		cursor: pointer;
 		white-space: nowrap;
-		transition: opacity 0.1s;
+		transition:
+			opacity 0.15s,
+			background 0.15s;
+		color: white;
 	}
 
-	.btn-copy-template {
-		width: 100%;
-		background: var(--color-card);
+	button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
 	}
 
-	.btn-reset-file {
-		background: rgba(255, 0, 0, 0.2);
+	.btn-primary {
+		background: var(--color-accent, #22c55e);
+		color: #000;
 	}
 
-	.btn-reset-file:hover,
-	.btn-copy-template:hover {
+	.btn-ghost {
+		background: transparent;
+		color: rgba(255, 255, 255, 0.5);
+		padding-left: 0.25rem;
+	}
+
+	.btn-ghost:hover {
+		color: white;
+	}
+
+	.btn-primary:hover {
 		opacity: 0.85;
 	}
 
-	.file-input {
-		margin-top: 0.5rem;
-		background: rgba(100, 200, 100, 0.1);
-		width: 100%;
-		border: none;
-		border-radius: 7px;
-		padding: 0.5rem;
+	/* ---- File upload ---- */
+	.file-label {
+		display: block;
+		cursor: pointer;
 	}
 
-	.clipboard-input {
-		margin-top: 0.5rem;
+	.file-label input[type="file"] {
+		display: none;
+	}
+
+	.file-cta {
 		display: flex;
 		align-items: center;
-		background: rgba(100, 200, 100, 0.1);
-		width: 100%;
-		border: none;
-		border-radius: 7px;
-		padding: 0.5rem;
-	}
-
-	.clipboard-button {
-		margin: none;
-		color: var(--color-text);
-		width: 100%;
-		display: flex;
 		justify-content: center;
-		align-items: baseline;
-		background: transparent;
-		border: none;
-		padding: 0;
+		width: 100%;
+		box-sizing: border-box;
+		padding: 0.65rem 1rem;
+		background: rgba(100, 200, 100, 0.08);
+		border: 1px dashed rgba(100, 200, 100, 0.3);
+		border-radius: 7px;
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.6);
+		transition:
+			background 0.15s,
+			border-color 0.15s,
+			color 0.15s;
 	}
 
-	.input-group {
-		width: 100%;
+	.file-label:hover .file-cta {
+		background: rgba(100, 200, 100, 0.14);
+		border-color: rgba(100, 200, 100, 0.5);
+		color: white;
+	}
+
+	/* ---- Danger card ---- */
+	.danger-card {
+		background: rgba(255, 0, 0, 0.08);
+		border: 1px solid rgba(255, 0, 0, 0.15);
+	}
+
+	.danger-title {
+		color: rgba(255, 100, 100, 0.9);
+	}
+
+	.danger-buttons {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: 0.5rem;
 	}
 
-	/* Responsiveness for slightly larger screens */
+	.btn-danger {
+		background: rgba(255, 0, 0, 0.18);
+		color: rgba(255, 180, 180, 0.95);
+		width: 100%;
+	}
+
+	.btn-danger:hover:not(:disabled) {
+		background: rgba(255, 0, 0, 0.28);
+	}
+
 	@media (min-width: 480px) {
-		.upload-file-section {
-			flex-direction: row;
-		}
-
-		.btn-copy-template {
-			width: fit-content;
-		}
-
-		.input-group {
-			flex-direction: row;
+		.card {
+			padding: 1.25rem;
 		}
 	}
 </style>
