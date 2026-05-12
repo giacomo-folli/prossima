@@ -4,7 +4,8 @@
 
 	const isTraining = $derived(page.url.pathname.includes("/training"));
 	const isSettings = $derived(page.url.pathname.includes("/settings"));
-	const isHome = $derived(!isTraining && !isSettings);
+	const isAnalytics = $derived(page.url.pathname.includes("/analytics"));
+	const isHome = $derived(!isTraining && !isSettings && !isAnalytics);
 </script>
 
 <nav class="tab-nav">
@@ -14,6 +15,9 @@
 	<a href={resolve("/exercises")} class="tab" class:active={isHome}>Esercizi</a>
 	<a href={resolve("/settings")} class="tab" class:active={isSettings}
 		>Impostazioni</a
+	>
+	<a href={resolve("/analytics")} class="tab" class:active={isAnalytics}
+		>Analisi</a
 	>
 </nav>
 
