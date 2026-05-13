@@ -2,13 +2,15 @@
 
 A simple workout and exercise tracking app built with SvelteKit.
 
-The goal of this project is to keep exercise tracking simple and effortless. The app focuses on daily progress, exercise completion, and keeping a clear overview of training activity.
+The goal of this project is to keep exercise tracking simple and effortless. The app focuses on daily progress, exercise completion, and configurable training plans using YAML.
 
 ## Features
 
 * Exercise overview page
-* Individual exercise pages
-* Progress tracking
+* Individual exercise detail pages
+* Progress tracking with session summaries
+* Training plan settings with YAML editor and file upload
+* Analytics and training review pages
 
 
 ## Development
@@ -31,36 +33,39 @@ pnpm preview
 
 ## Deployment
 
-The project is configured for GitHub Pages using `@sveltejs/adapter-static` and GitHub Actions.
+The project is configured for GitHub Pages using `@sveltejs/adapter-static`.
 
-Production builds are automatically deployed when changes are pushed to the `master` branch.
+Production builds output static files to the `build/` directory, and the app uses a production base path of `/prossima`.
 
 ## Project Structure
 
 ```text
 src/
-├── lib/
-├── routes/
-├── app.html
-└── app.css
+├─ app.css
+├─ app.html
+├─ lib/
+│   ├─ components/
+│   ├─ stores/
+│   └─ utils/
+└─ routes/
+    ├─ analytics/
+    ├─ exercises/
+    ├─ settings/
+    └─ training/
 ```
 
 ## Notes
 
-Because the app is deployed under a GitHub Pages subpath, internal routes use SvelteKit path resolution instead of hardcoded absolute URLs.
+Because the app is deployed under a GitHub Pages subpath, internal routes use SvelteKit path resolution and the production base path is configured in `svelte.config.js`.
 
 ## Next Steps
 
 Planned improvements for the project:
 
-- [ ] Import/export progress data to `training_plan.yaml` 
-- [ ] Add support for PWA on mobile
-- [ ] Dashboard and statistics
-- [ ] Weekly and monthly progress summaries
+- [x] Add support for PWA on mobile
+- [x] Dashboard and statistics
 - [ ] Custom exercise creation
 - [ ] Weekly schedule
-- [ ] Offline support
-- [ ] Authentication and profile
 - [ ] Workout routines and grouped sessions
 
 ## License
