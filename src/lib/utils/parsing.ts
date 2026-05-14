@@ -1,4 +1,4 @@
-import type { Exercise } from "../types";
+import type { Exercise, ExerciseDefinition } from "../types";
 import { parse } from "yaml";
 
 export async function parseYamlString(
@@ -7,10 +7,7 @@ export async function parseYamlString(
 	try {
 		const parsedData = parse(string) as {
 			version: number;
-			exercises: Record<
-				string,
-				{ name: string; steps: { description: string; active?: boolean }[] }
-			>;
+			exercises: Record<string, ExerciseDefinition>;
 		};
 
 		if (!parsedData || !parsedData.exercises) {
@@ -19,11 +16,20 @@ export async function parseYamlString(
 
 		const parsedExercises = Object.entries(parsedData.exercises);
 		const exercisesArray: Exercise[] = parsedExercises.map(([key, data]) => {
+			let firstCompletedIndex = data.steps.findIndex(
+				(s) => s?.completed === true,
+			);
+			if (firstCompletedIndex === -1) firstCompletedIndex = 0;
+			const nextStep =
+				firstCompletedIndex + 1 < data.steps.length
+					? firstCompletedIndex + 1
+					: firstCompletedIndex;
+
 			return {
 				id: key,
 				name: data.name,
-				steps: makeStepsImproved(data.steps),
-				currentStepIndex: data.steps.findIndex((s) => s.active),
+				steps: makeStepsImproved(data.steps, nextStep),
+				currentStepIndex: nextStep,
 			} as Exercise;
 		});
 
@@ -44,13 +50,15 @@ export function makeSteps(labels: string[]) {
 }
 
 export function makeStepsImproved(
-	steps: { description: string; active?: boolean }[],
+	steps: ExerciseDefinition["steps"],
+	currentStepIndex: number,
 ) {
 	return steps.map((item, i) => ({
 		id: `step-${i}`,
 		label: item.description,
-		completed: false,
-		completedAt: undefined,
+		completed: i <= currentStepIndex ? true : false,
+		// TODO: pass the completion date from YAML file
+		completedAt: new Date().toISOString(),
 	}));
 }
 
@@ -61,7 +69,7 @@ exercises:
     name: "<Exercise Name>"
     steps:
       - description: "<step 1 description>"
-	    active: true
+	    completed: true
       - description: "<step 2 description>"
       - description: "<step 3 description>"
 
@@ -71,7 +79,9 @@ exercises:
 #     name: "Push-Ups"
 #     steps:
 #       - description: "3 sets of 10 reps"
+#         completed: true
 #       - description: "3 sets of 6 reps"
+#         completed: true
 #       - description: "3 sets of 8 reps"
-#         active: true
+#         completed: true
 `;

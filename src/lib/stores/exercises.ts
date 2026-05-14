@@ -1,5 +1,5 @@
 import { writable, derived } from "svelte/store";
-import type { Exercise } from "../types";
+import type { Exercise, Step } from "../types";
 import { loadExercises, saveExercises } from "../utils/storage";
 
 function createExercisesStore() {
@@ -10,62 +10,81 @@ function createExercisesStore() {
 		subscribe,
 
 		completeCurrentStep(exerciseId: string) {
+			let toSave: Exercise[] = [];
+
 			update((exercises) => {
-				const exercise = exercises.find((e) => e.id === exerciseId);
-				if (!exercise) return exercises;
+				const next = exercises.map((ex) => {
+					if (ex.id !== exerciseId) return ex;
 
-				const step = exercise.steps[exercise.currentStepIndex];
-				if (!step || step.completed) return exercises;
+					const stepIndex = ex.currentStepIndex;
+					const step = ex.steps[stepIndex];
+					if (!step || step.completed) return ex;
 
-				step.completed = true;
-				step.completedAt = new Date().toISOString();
+					const newSteps = ex.steps.map((s, i) =>
+						i === stepIndex
+							? { ...s, completed: true, completedAt: new Date().toISOString() }
+							: s,
+					);
 
-				const nextIndex = exercise.currentStepIndex + 1;
-				if (nextIndex < exercise.steps.length) {
-					exercise.currentStepIndex = nextIndex;
-				}
+					const nextIndex =
+						stepIndex + 1 < ex.steps.length ? stepIndex + 1 : stepIndex;
 
-				saveExercises(exercises);
-				return exercises;
+					return { ...ex, steps: newSteps, currentStepIndex: nextIndex };
+				});
+
+				toSave = next;
+				return next;
 			});
+
+			saveExercises(toSave);
 		},
 
 		undoLastCompletion(exerciseId: string) {
+			let toSave: Exercise[] = [];
+
 			update((exercises) => {
-				const ex = exercises.find((e) => e.id === exerciseId);
-				if (!ex) return exercises;
+				const next = exercises.map((ex) => {
+					if (ex.id !== exerciseId) return ex;
 
-				// Find last completed step
-				let lastCompletedIndex = -1;
-				for (let i = ex.steps.length - 1; i >= 0; i--) {
-					if (ex.steps[i].completed) {
-						lastCompletedIndex = i;
-						break;
+					let lastCompletedIndex = -1;
+					for (let i = ex.steps.length - 1; i >= 0; i--) {
+						if (ex.steps[i].completed) {
+							lastCompletedIndex = i;
+							break;
+						}
 					}
-				}
+					if (lastCompletedIndex === -1) return ex;
 
-				if (lastCompletedIndex === -1) return exercises;
+					const newSteps = ex.steps.map((s, i) =>
+						i === lastCompletedIndex
+							? { ...s, completed: false, completedAt: undefined }
+							: s,
+					);
 
-				ex.steps[lastCompletedIndex].completed = false;
-				ex.steps[lastCompletedIndex].completedAt = undefined;
-				ex.currentStepIndex = lastCompletedIndex;
+					return {
+						...ex,
+						steps: newSteps,
+						currentStepIndex: lastCompletedIndex,
+					};
+				});
 
-				saveExercises(exercises);
-				return exercises;
+				toSave = next;
+				return next;
 			});
+
+			saveExercises(toSave);
 		},
 
-		reset(newExercises?: Exercise[]) {
+		set(newExercises?: Exercise[]) {
 			const exercises = newExercises || [];
 			set(
 				exercises.map((ex) => ({
 					...ex,
 					steps: ex.steps.map((s) => ({
 						...s,
-						completed: false,
-						completedAt: undefined,
+						completedAt: new Date().toISOString(),
 					})),
-					currentStepIndex: 0,
+					currentStepIndex: ex.currentStepIndex,
 				})),
 			);
 
@@ -93,8 +112,8 @@ function createExercisesStore() {
 
 export const exercises = createExercisesStore();
 
-export const exerciseProgress = derived(exercises, ($exercises) =>
-	$exercises.map((ex) => {
+export const exerciseProgress = derived(exercises, (exs) => {
+	return exs.map((ex) => {
 		const completedCount = ex.steps.filter((s) => s.completed).length;
 		const total = ex.steps.length;
 		const pct = total === 0 ? 0 : Math.round((completedCount / total) * 100);
@@ -112,5 +131,5 @@ export const exerciseProgress = derived(exercises, ($exercises) =>
 			next,
 			isComplete,
 		};
-	}),
-);
+	});
+});

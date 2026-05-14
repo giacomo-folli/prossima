@@ -32,3 +32,17 @@ export interface TrainingSession {
 	completedAt: string;
 	exercises: SessionExercise[];
 }
+
+/** Represents the definition of an exercise parsed from a YAML file.
+ * @param name name of the exercise
+ * @param steps array of ordered steps
+ */
+export interface ExerciseDefinition {
+	name: string;
+	steps: {
+		description: string;
+		completed?: boolean;
+		// TODO: add completedAt in the YAML file
+		// completedAt: Date
+	}[];
+}

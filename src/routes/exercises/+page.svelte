@@ -1,13 +1,14 @@
 <script lang="ts">
 	import ExerciseCard from "$lib/components/ExerciseCard.svelte";
-	import { exerciseProgress } from "$lib/stores/exercises";
+	import { exerciseProgress, exercises } from "$lib/stores/exercises";
 
-	const progress = exerciseProgress;
+	exercises.subscribe((v) => console.log("exercises changed", v));
+	exerciseProgress.subscribe((v) => console.log("progress changed", v));
 </script>
 
 <main>
 	<div class="grid">
-		{#each $progress as ex (ex.id)}
+		{#each $exerciseProgress as ex (ex.id)}
 			<ExerciseCard
 				id={ex.id}
 				name={ex.name}

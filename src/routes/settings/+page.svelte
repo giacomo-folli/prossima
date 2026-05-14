@@ -38,7 +38,7 @@
 		try {
 			// Apply the content to the store
 			const parsed = await parseYamlString(yamlText);
-			exercises.reset(parsed ?? current_exercises);
+			exercises.set(parsed ?? current_exercises);
 
 			alert("Configurazione applicata con successo!");
 		} catch {
@@ -70,7 +70,8 @@
 			localStorage.setItem(StorageKeys.CONFIG_FILE, fileContent);
 
 			const parsed = await parseYamlString(fileContent);
-			exercises.reset(parsed ?? current_exercises);
+			exercises.set(parsed ?? current_exercises);
+
 			yamlText = fileContent;
 			yamlDirty = true;
 			yamlSaved = false;
