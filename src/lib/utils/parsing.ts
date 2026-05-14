@@ -1,4 +1,3 @@
-import { command } from "$app/server";
 import type { Exercise, ExerciseDefinition } from "../types";
 import { parse } from "yaml";
 
