@@ -18,7 +18,13 @@
 	let pastSessions = $derived($sessions.map((s) => ({ ...s, hidden: true })));
 
 	let logging = $state(false);
-	let confirmDelete = $state<string | null>(null);
+
+	function handleDeleteSession(e: Event, id: string) {
+		e.stopPropagation();
+		if (confirm("Questa azione eliminerà la sessione.\n\nContinuare?")) {
+			sessions.deleteSession(id);
+		}
+	}
 
 	function logSession() {
 		if (program.length === 0) return;
@@ -130,33 +136,12 @@
 									>{formatTime(session.completedAt)}</span
 								>
 							</div>
-							{#if confirmDelete === session.id}
-								<div class="confirm-row">
-									<button
-										class="btn-confirm-del"
-										onclick={(e) => {
-											sessions.deleteSession(session.id);
-											confirmDelete = null;
-										}}>Elimina</button
-									>
-									<button
-										class="btn-cancel"
-										onclick={(e) => {
-											e.stopPropagation();
-											confirmDelete = null;
-										}}>Annulla</button
-									>
-								</div>
-							{:else}
-								<button
-									class="btn-delete"
-									onclick={(e) => {
-										e.stopPropagation();
-										confirmDelete = session.id;
-									}}
-									aria-label="Elimina sessione">×</button
-								>
-							{/if}
+
+							<button
+								class="btn-delete"
+								onclick={(e) => handleDeleteSession(e, session.id)}
+								aria-label="Elimina sessione">×</button
+							>
 						</div>
 						<div class="session-exercises" class:hidden={session.hidden}>
 							{#each session.exercises as ex}
