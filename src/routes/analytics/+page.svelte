@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import { exercises } from "$lib/stores/exercises";
 	import { sessions } from "$lib/stores/sessions";
 
@@ -302,7 +303,9 @@
 			{#each exerciseStats as ex}
 				<li class="prog-item">
 					<div class="prog-top">
-						<a href="/exercises/{ex.id}" class="prog-name">{ex.name}</a>
+						<a href={resolve(`/exercises/${ex.id}`)} class="prog-name"
+							>{ex.name}</a
+						>
 						<span class="prog-pct">{ex.pct}%</span>
 					</div>
 					<div class="prog-bar-track">
