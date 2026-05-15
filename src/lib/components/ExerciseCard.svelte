@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
-	import type { Exercise, Step } from "$lib/types";
+	import type { Step } from "$lib/types";
 	import ProgressBar from "./ProgressBar.svelte";
 
 	let {

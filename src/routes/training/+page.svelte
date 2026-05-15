@@ -90,11 +90,6 @@
 		<ol class="program-list">
 			{#each program as item (item.exerciseId)}
 				<li class="program-item">
-					<input
-						type="checkbox"
-						id={item.exerciseId}
-						bind:checked={item.checked}
-					/>
 					<a
 						href={resolve(`/exercises/${item.exerciseId}`)}
 						class="program-link"
@@ -102,6 +97,12 @@
 						<span class="ex-name">{item.exerciseName}</span>
 						<span class="ex-step">{item.stepLabel}</span>
 					</a>
+
+					<input
+						type="checkbox"
+						id={item.exerciseId}
+						bind:checked={item.checked}
+					/>
 				</li>
 			{/each}
 		</ol>
@@ -204,11 +205,20 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0 0 0 1rem;
+		padding: 0 1rem 0 0;
 	}
 
 	.program-item:last-child {
 		border-bottom: none;
+	}
+
+	input[type="checkbox"] {
+		width: 1.35rem;
+		height: 1.35rem;
+		min-width: 1.35rem;
+		min-height: 1.35rem;
+		accent-color: var(--color-primary);
+		cursor: pointer;
 	}
 
 	.program-link {
