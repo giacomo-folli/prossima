@@ -1,9 +1,25 @@
 import type { Exercise, ExerciseDefinition } from "../types";
-import { parse } from "yaml";
+import { parse, stringify } from "yaml";
 
-export async function parseYamlString(
-	string: string = "",
-): Promise<Exercise[]> {
+export function toYamlString(exercises: Exercise[]): string {
+	try {
+		const data = exercises.map((e) => {
+			const temp = { ...e } as any;
+			delete temp.currentStepIndex;
+			return temp;
+		});
+
+		return stringify({
+			version: 1,
+			exercises: Object.fromEntries(data.map((d) => [d.id, d])),
+		});
+	} catch (error) {
+		console.error("Error converting exercises to yaml string:", error);
+		throw error;
+	}
+}
+
+export function parseYamlString(string: string = ""): Exercise[] {
 	try {
 		const parsedData = parse(string) as {
 			version: number;
@@ -31,7 +47,7 @@ export async function parseYamlString(
 			return {
 				id: key,
 				name: data.name,
-				steps: makeStepsImproved(data.steps, firstUncompletedStep),
+				steps: makeSteps(data.steps, firstUncompletedStep),
 				currentStepIndex: firstUncompletedStep,
 			} as Exercise;
 		});
@@ -43,16 +59,7 @@ export async function parseYamlString(
 	}
 }
 
-export function makeSteps(labels: string[]) {
-	return labels.map((label, i) => ({
-		id: `step-${i}`,
-		label,
-		completed: false,
-		completedAt: undefined,
-	}));
-}
-
-export function makeStepsImproved(
+export function makeSteps(
 	steps: ExerciseDefinition["steps"],
 	lastCompletedStepIndex: number,
 ) {
@@ -61,13 +68,25 @@ export function makeStepsImproved(
 		allComplete = true;
 	}
 
-	return steps.map((item, i) => ({
-		id: `step-${i}`,
-		label: item.description,
-		completed: allComplete || i < lastCompletedStepIndex ? true : false,
-		// TODO: pass the completion date from YAML file
-		completedAt: new Date().toISOString(),
-	}));
+	const stepsFormatted = steps.map((item, i) => {
+		const completed = allComplete || i < lastCompletedStepIndex;
+		let completedAt = undefined;
+		if (completed && item?.completedAt) {
+			const raw =
+				typeof (item.completedAt as unknown) === "string"
+					? item.completedAt
+					: item.completedAt.toString();
+			completedAt = new Date(raw).toISOString();
+		}
+
+		return {
+			id: `step-${i}`,
+			description: item.description,
+			completed: completed,
+			completedAt: completedAt,
+		};
+	});
+	return stepsFormatted;
 }
 
 export const defaultExercises = `version: 1

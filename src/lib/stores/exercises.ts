@@ -36,7 +36,7 @@ function createExercisesStore() {
 				return next;
 			});
 
-			saveExercises(toSave);
+			saveExercises(toSave, true);
 		},
 
 		undoLastCompletion(exerciseId: string) {
@@ -72,21 +72,12 @@ function createExercisesStore() {
 				return next;
 			});
 
-			saveExercises(toSave);
+			saveExercises(toSave, true);
 		},
 
 		set(newExercises?: Exercise[]) {
 			const exercises = newExercises || [];
-			set(
-				exercises.map((ex) => ({
-					...ex,
-					steps: ex.steps.map((s) => ({
-						...s,
-						completedAt: new Date().toISOString(),
-					})),
-					currentStepIndex: ex.currentStepIndex,
-				})),
-			);
+			set(exercises);
 
 			saveExercises(exercises);
 		},

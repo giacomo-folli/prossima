@@ -68,7 +68,7 @@
 				<p class="stat-label">Last trained</p>
 				<p class="stat-value">{lastCompleted.exercise?.name}</p>
 				<p class="stat-label">
-					{lastCompleted.label} — {formattedDate}
+					{lastCompleted.description} — {formattedDate}
 				</p>
 			{:else}
 				<span>No step completed yet</span>

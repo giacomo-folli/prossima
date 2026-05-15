@@ -10,7 +10,7 @@
 			.map((ex) => ({
 				exerciseId: ex.id,
 				exerciseName: ex.name,
-				stepLabel: ex.steps[ex.currentStepIndex]?.label ?? "—",
+				stepLabel: ex.steps[ex.currentStepIndex]?.description ?? "—",
 				checked: true,
 			})),
 	);

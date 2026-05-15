@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import type { Exercise, Step } from "$lib/types";
 	import ProgressBar from "./ProgressBar.svelte";
 
 	let {
@@ -17,8 +18,8 @@
 		pct: number;
 		completedCount: number;
 		total: number;
-		current: { label: string } | null;
-		next: { label: string } | null;
+		current: Pick<Step, "description"> | null;
+		next: Pick<Step, "description"> | null;
 		isComplete: boolean;
 	} = $props();
 </script>
@@ -37,12 +38,12 @@
 		{:else}
 			<p class="step-label">
 				<span class="step-meta">Now</span>
-				<span class="step-value"> {current?.label ?? "—"}</span>
+				<span class="step-value"> {current?.description ?? "—"}</span>
 			</p>
 			{#if next}
 				<p class="step-label next">
 					<span class="step-meta">Next</span>
-					<span class="step-value"> {next.label} </span>
+					<span class="step-value"> {next.description} </span>
 				</p>
 			{/if}
 		{/if}

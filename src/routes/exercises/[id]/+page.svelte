@@ -66,7 +66,7 @@
 				<p class="section-label">Current step</p>
 				<div class="current-step-box">
 					<p class="current-step-label">
-						{currentStep?.label ?? "—"}
+						{currentStep?.description ?? "—"}
 					</p>
 					<button class="btn btn--primary btn-complete" onclick={completeStep}>
 						Mark complete

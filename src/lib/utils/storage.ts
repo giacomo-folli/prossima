@@ -1,5 +1,6 @@
 import type { Exercise, TrainingSession } from "../types";
 import { StorageKeys } from "./enums";
+import { toYamlString } from "./parsing";
 
 export function loadExercises(): Exercise[] | null {
 	if (typeof localStorage === "undefined") return null;
@@ -12,15 +13,23 @@ export function loadExercises(): Exercise[] | null {
 	}
 }
 
-export function saveExercises(exercises: Exercise[]): void {
+export function saveExercises(
+	exercises: Exercise[],
+	persistToStorage: boolean = false,
+): void {
 	if (typeof localStorage === "undefined") return;
 	try {
 		localStorage.setItem(
 			StorageKeys.EXERCISES_PROGRESS,
 			JSON.stringify(exercises),
 		);
-	} catch {
-		// ignore
+
+		if (persistToStorage) {
+			const updatedConfig = toYamlString(exercises);
+			localStorage.setItem(StorageKeys.CONFIG_FILE, updatedConfig);
+		}
+	} catch (error) {
+		console.error(error);
 	}
 }
 

@@ -1,7 +1,7 @@
 /** Represents an individual step in a training exercise. */
 export interface Step {
 	id: string;
-	label: string;
+	description: string;
 	completed: boolean;
 	completedAt?: string;
 	exercise?: Exercise;
@@ -42,7 +42,6 @@ export interface ExerciseDefinition {
 	steps: {
 		description: string;
 		completed?: boolean;
-		// TODO: add completedAt in the YAML file
-		// completedAt: Date
+		completedAt?: string;
 	}[];
 }

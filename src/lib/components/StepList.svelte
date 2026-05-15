@@ -36,7 +36,7 @@
 					<span class="dot-future"></span>
 				{/if}
 			</span>
-			<span class="step-text">{step.label}</span>
+			<span class="step-text">{step.description}</span>
 			{#if step.completedAt}
 				<span class="step-date"
 					>{new Date(step.completedAt).toLocaleDateString("it-IT", {
