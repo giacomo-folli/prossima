@@ -107,28 +107,37 @@
 		</section>
 	{/if}
 
-	<section class="action-section">
-		<button
-			class="btn btn--primary btn-log"
-			onclick={logSession}
-			disabled={program.length === 0 || celebrating}
-		>
-			Registra sessione
-		</button>
-	</section>
+	<!-- Spacer so content doesn't hide behind the fixed bar -->
+	<div class="action-spacer" aria-hidden="true"></div>
+</div>
 
-	<SessionHistory />
+<!-- Fixed bottom action bar -->
+<div class="action-bar">
+	<button
+		class="btn btn--primary btn-log"
+		onclick={logSession}
+		disabled={program.length === 0 || celebrating}
+	>
+		Registra sessione
+	</button>
 </div>
 
 <style>
 	.training-layout {
 		display: flex;
 		flex-direction: column;
-		gap: 2rem; /* Consistent spacing between major sections */
-		max-width: 600px; /* Constrain width for better readability on desktop */
+		gap: 2rem;
 		width: 100%;
+		/* Mobile-first: full width with comfortable padding */
+		padding: 0 1rem 0;
+		/* Desktop: constrain and centre */
+		max-width: 600px;
 		margin: 0 auto;
-		padding-bottom: 2rem;
+	}
+
+	/* Pushes content above the fixed bar height + a little breathing room */
+	.action-spacer {
+		height: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 	}
 
 	.col-header {
@@ -229,7 +238,8 @@
 
 	.quick-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+		/* Mobile-first: exactly 3 columns */
+		grid-template-columns: repeat(3, 1fr);
 		gap: 0.75rem;
 	}
 
@@ -273,14 +283,28 @@
 		line-height: 1.2;
 	}
 
-	/* Action section */
-	.action-section {
-		width: 100%;
+	/* ── Fixed bottom action bar ── */
+	.action-bar {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		z-index: 100;
+
+		background: transparent;
+		backdrop-filter: blur(16px) saturate(1.4);
+		-webkit-backdrop-filter: blur(16px) saturate(1.4);
+
+		/* Respect notches / home indicators on iOS */
+		padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+
 		display: flex;
-		justify-content: flex-start;
+		justify-content: stretch;
 	}
 
 	.btn-log {
+		/* Full width inside the bar on mobile */
+		width: 100%;
 		padding: 0.875rem 1.5rem;
 		font-size: 1rem;
 		font-weight: 600;
@@ -297,17 +321,19 @@
 		cursor: not-allowed;
 	}
 
-	/* Mobile adjustments */
-	@media (max-width: 480px) {
-		.quick-grid {
-			grid-template-columns: repeat(
-				3,
-				1fr
-			); /* Forces exactly 3 columns on small screens */
+	/* Desktop: centre-align the bar content to match the page max-width */
+	@media (min-width: 600px) {
+		.action-bar {
+			justify-content: center;
 		}
 
 		.btn-log {
-			width: 100%; /* Make button full width on mobile */
+			width: 600px;
+			max-width: 100%;
+		}
+
+		.quick-grid {
+			grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
 		}
 	}
 </style>
