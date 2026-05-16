@@ -16,7 +16,6 @@
 			})),
 	);
 
-	
 	let celebrating = $state(false);
 
 	function logSession() {
@@ -32,20 +31,10 @@
 		celebrating = true;
 	}
 
-	
-
-	// add inside your existing <script>
 	const quickExercises = [
-		{ id: "corsa", icon: "🏃", label: "Corsa" },
-		{ id: "bici", icon: "🚴", label: "Bicicletta" },
-		{ id: "nuoto", icon: "🏊", label: "Nuoto" },
-		{ id: "pesi", icon: "🏋️", label: "Pesi liberi" },
 		{ id: "yoga", icon: "🧘", label: "Yoga" },
-		{ id: "camminata", icon: "🚶", label: "Camminata" },
-		{ id: "calcio", icon: "⚽", label: "Calcio" },
 		{ id: "stretching", icon: "🤸", label: "Stretching" },
-		{ id: "corda", icon: "🪢", label: "Corda" },
-		{ id: "boxe", icon: "🥊", label: "Boxe" },
+		{ id: "fisio", icon: "🦶🏼", label: "Esercizi per caviglia" },
 	];
 
 	let selectedQuick = $state<Set<string>>(new Set());
@@ -59,27 +48,18 @@
 	}
 </script>
 
-<!-- Celebration overlay (portal-like, fixed position) -->
 <CelebrationOverlay
 	visible={celebrating}
 	onDone={() => (celebrating = false)}
 />
 
 <div class="training-layout">
-	<!-- LEFT: current program -->
-	<section class="col col-program">
+	<section class="col-program">
 		<header class="col-header">
 			<div>
 				<h2>Programma attuale</h2>
 				<p class="col-sub">{program.length} esercizi</p>
 			</div>
-			<button
-				class="btn btn--primary btn-log"
-				onclick={logSession}
-				disabled={program.length === 0 || celebrating}
-			>
-				Registra sessione
-			</button>
 		</header>
 
 		<ol class="program-list">
@@ -103,9 +83,6 @@
 		</ol>
 	</section>
 
-	<hr class="quick-divider" />
-
-	<!-- Quick exercises -->
 	<section class="quick-section">
 		<p class="quick-label">Esercizi rapidi</p>
 		<div class="quick-grid">
@@ -122,36 +99,44 @@
 			{/each}
 		</div>
 	</section>
+
+	<section class="action-section">
+		<button
+			class="btn btn--primary btn-log"
+			onclick={logSession}
+			disabled={program.length === 0 || celebrating}
+		>
+			Registra sessione
+		</button>
+	</section>
 </div>
 
 <style>
 	.training-layout {
-		display: grid;
-		grid-template-columns: 2fr 1fr;
-		gap: 2rem;
-		align-items: start;
+		display: flex;
+		flex-direction: column;
+		gap: 2rem; /* Consistent spacing between major sections */
+		max-width: 600px; /* Constrain width for better readability on desktop */
+		width: 100%;
+		margin: 0 auto;
+		padding-bottom: 2rem;
 	}
 
 	.col-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		margin-bottom: 1.25rem;
-		gap: 1rem;
-		flex-wrap: wrap;
+		margin-bottom: 1rem;
 	}
 
 	h2 {
 		margin: 0;
-		font-size: 1.1rem;
+		font-size: 1.25rem;
 		font-weight: 700;
 		letter-spacing: -0.02em;
 		color: var(--color-text);
 	}
 
 	.col-sub {
-		margin: 0.2rem 0 0;
-		font-size: 0.78rem;
+		margin: 0.25rem 0 0;
+		font-size: 0.875rem;
 		color: var(--color-muted);
 	}
 
@@ -160,18 +145,18 @@
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		background: var(--color-card);
-		border: 1px solid var(--color-border);
-		border-radius: 10px;
+		background: var(--color-card, #1c1c1e);
+		border: 1px solid var(--color-border, #2c2c2e);
+		border-radius: 12px;
 		overflow: hidden;
 	}
 
 	.program-item {
-		border-bottom: 1px solid var(--color-border);
+		border-bottom: 1px solid var(--color-border, #2c2c2e);
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0 1rem 0 0;
+		padding-right: 1.25rem;
 	}
 
 	.program-item:last-child {
@@ -179,94 +164,64 @@
 	}
 
 	input[type="checkbox"] {
-		width: 1.35rem;
-		height: 1.35rem;
-		min-width: 1.35rem;
-		min-height: 1.35rem;
-		accent-color: var(--color-primary);
+		width: 1.5rem;
+		height: 1.5rem;
+		min-width: 1.5rem;
+		min-height: 1.5rem;
+		accent-color: var(--color-accent, #2c974b);
 		cursor: pointer;
+		border-radius: 4px;
 	}
 
 	.program-link {
 		width: 100%;
 		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 1rem;
-		padding: 0.8rem 1.2rem;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		gap: 0.35rem;
+		padding: 1rem 1.25rem;
 		text-decoration: none;
 		color: inherit;
-		transition: background 0.12s;
+		transition: background 0.15s ease;
+	}
+
+	.program-link:hover {
+		background: rgba(255, 255, 255, 0.05);
 	}
 
 	.ex-name {
-		font-size: 0.875rem;
+		font-size: 1rem;
 		font-weight: 600;
 		color: var(--color-text);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		min-width: 0;
+		white-space: normal;
+		word-wrap: break-word;
 	}
 
 	.ex-step {
-		font-size: 0.8rem;
+		font-size: 0.85rem;
 		color: var(--color-muted);
-		text-align: right;
-		flex-shrink: 0;
+		text-align: left;
 	}
 
-	.btn-log {
-		flex-shrink: 0;
-	}
-
-	
-	/* --- Mobile --- */
-	@media (max-width: 768px) {
-		.training-layout {
-			grid-template-columns: 1fr;
-			gap: 1.5rem;
-		}
-
-		.col-header {
-			gap: 0.75rem;
-		}
-
-		.program-link {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 0.3rem;
-			padding: 0.8rem 1rem;
-		}
-
-		.ex-name {
-			white-space: normal;
-			word-wrap: break-word;
-		}
-
-		.ex-step {
-			text-align: left;
-			font-size: 0.75rem;
-		}
-	}
-
+	/* Quick section */
 	.quick-section {
-		/* margin-bottom: 1.5rem; */
+		width: 100%;
 	}
 
 	.quick-label {
-		margin: 0 0 0.75rem;
-		font-size: 0.72rem;
+		margin: 0 0 1rem;
+		font-size: 0.75rem;
 		font-weight: 600;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
 		color: var(--color-muted);
 	}
 
 	.quick-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-		gap: 0.5rem;
+		grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+		gap: 0.75rem;
 	}
 
 	.quick-box {
@@ -274,46 +229,76 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 0.35rem;
-		padding: 0.75rem 0.5rem;
-		border-radius: 10px;
-		border: 1px solid var(--color-border);
-		background: var(--color-card);
+		gap: 0.5rem;
+		padding: 1rem 0.5rem;
+		border-radius: 12px;
+		border: 1px solid var(--color-border, #2c2c2e);
+		background: var(--color-card, #1c1c1e);
 		cursor: pointer;
-		transition:
-			background 0.12s,
-			border-color 0.12s;
+		transition: all 0.2s ease;
 	}
 
 	.quick-box:hover {
-		background: var(--color-track);
+		background: var(--color-track, #2c2c2e);
 	}
 
 	.quick-box.active {
-		background: var(--color-primary);
-		border-color: var(--color-primary);
+		background: var(--color-accent, #2c974b);
+		border-color: var(--color-accent, #2c974b);
 	}
 
 	.quick-box.active .quick-label-text {
-		color: #fff;
+		color: #ffffff;
 	}
 
 	.quick-icon {
-		font-size: 1.4rem;
+		font-size: 1.5rem;
 		line-height: 1;
 	}
 
 	.quick-label-text {
-		font-size: 0.7rem;
+		font-size: 0.8rem;
 		font-weight: 500;
 		color: var(--color-text);
 		text-align: center;
 		line-height: 1.2;
 	}
 
-	.quick-divider {
+	/* Action section */
+	.action-section {
+		width: 100%;
+		display: flex;
+		justify-content: flex-start;
+	}
+
+	.btn-log {
+		padding: 0.875rem 1.5rem;
+		font-size: 1rem;
+		font-weight: 600;
+		border-radius: 8px;
+		background-color: var(--color-accent, #2c974b);
+		color: white;
 		border: none;
-		border-top: 1px solid var(--color-border);
-		margin: 0 0 2rem;
+		cursor: pointer;
+		transition: opacity 0.2s;
+	}
+
+	.btn-log:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	/* Mobile adjustments */
+	@media (max-width: 480px) {
+		.quick-grid {
+			grid-template-columns: repeat(
+				3,
+				1fr
+			); /* Forces exactly 3 columns on small screens */
+		}
+
+		.btn-log {
+			width: 100%; /* Make button full width on mobile */
+		}
 	}
 </style>

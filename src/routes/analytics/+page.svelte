@@ -167,272 +167,265 @@
 	);
 </script>
 
-<svelte:head>
-	<title>Analisi — Progressioni</title>
-</svelte:head>
-
-<header class="page-header">
-	<h1>Analisi</h1>
-	<p class="sub">
-		{totalSessions} sessioni · {completedSteps}/{totalSteps} step completati
-	</p>
-</header>
-
-{#if totalSessions === 0 && completedSteps === 0}
-	<p class="empty">
-		Nessun dato ancora. Registra qualche sessione e completa qualche step.
-	</p>
-{:else}
-	<!-- ── ROW 1: top stats ── -->
-	<div class="stat-row">
-		<div class="stat-card">
-			<span class="stat-value">{overallPct}%</span>
-			<span class="stat-label">Totale</span>
-			<div class="mini-bar-track">
-				<div class="mini-bar-fill" style="width:{overallPct}%"></div>
-			</div>
-			<span class="stat-sub">{completedSteps} di {totalSteps} step</span>
-		</div>
-
-		<div class="stat-card">
-			<span class="stat-value">{fullyDoneExercises}/{$exercises.length}</span>
-			<span class="stat-label">Esercizi completati</span>
-			<div class="mini-bar-track">
-				<div
-					class="mini-bar-fill"
-					style="width:{$exercises.length === 0
-						? 0
-						: Math.round((fullyDoneExercises / $exercises.length) * 100)}%"
-				></div>
-			</div>
-			<span class="stat-sub"
-				>{$exercises.length - fullyDoneExercises} ancora in corso</span
-			>
-		</div>
-
-		<div class="stat-card">
-			<span class="stat-value">{totalSessions}</span>
-			<span class="stat-label">Sessioni totali</span>
-			<span class="stat-sub">
-				{#if lastSessionDate}
-					Ultima: {lastSessionDate}
-					{#if daysSinceLast === 0}· oggi{:else if daysSinceLast === 1}· ieri{:else}·
-						{daysSinceLast}gg fa{/if}
-				{:else}Nessuna ancora{/if}
-			</span>
-		</div>
-
-		<div class="stat-card">
-			<span class="stat-value">{avgPerWeek}</span>
-			<span class="stat-label">Sessioni / settimana</span>
-			<span class="stat-sub"
-				>media su {weeksActive()} settiman{weeksActive() === 1
-					? "a"
-					: "e"}</span
-			>
-		</div>
-	</div>
-
-	<!-- ── ROW 2: streak card ── -->
-	<div class="card">
-		<p class="card-title">Streak</p>
-		<div class="streak-row">
-			<div class="streak-item">
-				<span class="streak-val">{currentStreak()}</span>
-				<span class="streak-lbl">giorni attuale</span>
-			</div>
-			<div class="streak-divider"></div>
-			<div class="streak-item">
-				<span class="streak-val">{longestStreak()}</span>
-				<span class="streak-lbl">giorni record</span>
-			</div>
-			<div class="streak-divider"></div>
-			<div class="streak-item">
-				<span class="streak-val">{weeksWithSession}</span>
-				<span class="streak-lbl">settimane attive</span>
-			</div>
-		</div>
-	</div>
-
-	<!-- ── ROW 3: weekly bar chart ── -->
-	<div class="card">
-		<p class="card-title">
-			Sessioni per settimana <span class="card-title-sub">(ultime 8)</span>
+<div class="page-layout">
+	<header class="page-header">
+		<h1>Analisi</h1>
+		<p class="sub">
+			{totalSessions} sessioni · {completedSteps}/{totalSteps} step completati
 		</p>
-		<div class="bar-chart">
-			{#each weeklyBuckets() as week}
-				<div class="bar-col">
-					<span class="bar-count">{week.count > 0 ? week.count : ""}</span>
-					<div class="bar-wrap">
-						<div
-							class="bar-fill"
-							class:bar-empty={week.count === 0}
-							style="height: {Math.round((week.count / maxWeekCount) * 100)}%"
-						></div>
-					</div>
-					<span class="bar-label">{week.label}</span>
+	</header>
+
+	{#if totalSessions === 0 && completedSteps === 0}
+		<p class="empty">
+			Nessun dato ancora. Registra qualche sessione e completa qualche step.
+		</p>
+	{:else}
+		<div class="stat-row">
+			<div class="stat-card">
+				<span class="stat-value">{overallPct}%</span>
+				<span class="stat-label">Totale</span>
+				<div class="mini-bar-track">
+					<div class="mini-bar-fill" style="width:{overallPct}%"></div>
 				</div>
-			{/each}
+				<span class="stat-sub">{completedSteps} di {totalSteps} step</span>
+			</div>
+
+			<div class="stat-card">
+				<span class="stat-value"
+					>{fullyDoneExercises}/{String($exercises.length)}</span
+				>
+				<span class="stat-label">Esercizi completati</span>
+				<div class="mini-bar-track">
+					<div
+						class="mini-bar-fill"
+						style="width:{$exercises.length === 0
+							? 0
+							: Math.round((fullyDoneExercises / $exercises.length) * 100)}%"
+					></div>
+				</div>
+				<span class="stat-sub"
+					>{$exercises.length - fullyDoneExercises} ancora in corso</span
+				>
+			</div>
+
+			<div class="stat-card">
+				<span class="stat-value">{totalSessions}</span>
+				<span class="stat-label">Sessioni totali</span>
+				<span class="stat-sub">
+					{#if lastSessionDate}
+						Ultima: {lastSessionDate}
+						{#if daysSinceLast === 0}· oggi{:else if daysSinceLast === 1}· ieri{:else}·
+							{daysSinceLast}gg fa{/if}
+					{:else}Nessuna ancora{/if}
+				</span>
+			</div>
+
+			<div class="stat-card">
+				<span class="stat-value">{avgPerWeek}</span>
+				<span class="stat-label">Sessioni / settimana</span>
+				<span class="stat-sub"
+					>media su {weeksActive()} settiman{weeksActive() === 1
+						? "a"
+						: "e"}</span
+				>
+			</div>
 		</div>
-	</div>
 
-	<!-- ── ROW 4: frequency per exercise ── -->
-	<div class="card">
-		<p class="card-title">Frequenza per esercizio</p>
-		<ul class="freq-list">
-			{#each byFrequency as ex}
-				<li class="freq-item">
-					<span class="freq-name">{ex.name}</span>
-					<div class="freq-bar-wrap">
-						<div
-							class="freq-bar-fill"
-							class:freq-bar-zero={ex.timesPerformed === 0}
-							style="width: {Math.round((ex.timesPerformed / maxFreq) * 100)}%"
-						></div>
-					</div>
-					<span class="freq-count">{ex.timesPerformed}×</span>
-				</li>
-			{/each}
-		</ul>
-	</div>
+		<div class="card">
+			<p class="card-title">Streak</p>
+			<div class="streak-row">
+				<div class="streak-item">
+					<span class="streak-val">{currentStreak()}</span>
+					<span class="streak-lbl">giorni attuale</span>
+				</div>
+				<div class="streak-divider"></div>
+				<div class="streak-item">
+					<span class="streak-val">{longestStreak()}</span>
+					<span class="streak-lbl">giorni record</span>
+				</div>
+				<div class="streak-divider"></div>
+				<div class="streak-item">
+					<span class="streak-val">{weeksWithSession}</span>
+					<span class="streak-lbl">settimane attive</span>
+				</div>
+			</div>
+		</div>
 
-	<!-- ── ROW 5: per-exercise progress breakdown ── -->
-	<div class="card">
-		<p class="card-title">Progressione per esercizio</p>
-		<ul class="prog-list">
-			{#each exerciseStats as ex}
-				<li class="prog-item">
-					<div class="prog-top">
-						<a href={resolve(`/exercises/${ex.id}`)} class="prog-name"
-							>{ex.name}</a
-						>
-						<span class="prog-pct">{ex.pct}%</span>
+		<div class="card">
+			<p class="card-title">
+				Sessioni per settimana <span class="card-title-sub">(ultime 8)</span>
+			</p>
+			<div class="bar-chart">
+				{#each weeklyBuckets() as week}
+					<div class="bar-col">
+						<span class="bar-count">{week.count > 0 ? week.count : ""}</span>
+						<div class="bar-wrap">
+							<div
+								class="bar-fill"
+								class:bar-empty={week.count === 0}
+								style="height: {Math.round((week.count / maxWeekCount) * 100)}%"
+							></div>
+						</div>
+						<span class="bar-label">{week.label}</span>
 					</div>
-					<div class="prog-bar-track">
-						<div class="prog-bar-fill" style="width:{ex.pct}%"></div>
-					</div>
-					<span class="prog-sub">{ex.done} / {ex.total} step</span>
-				</li>
-			{/each}
-		</ul>
-	</div>
-{/if}
+				{/each}
+			</div>
+		</div>
+
+		<div class="card">
+			<p class="card-title">Frequenza per esercizio</p>
+			<ul class="freq-list">
+				{#each byFrequency as ex}
+					<li class="freq-item">
+						<div class="freq-header">
+							<span class="freq-name">{ex.name}</span>
+							<span class="freq-count">{ex.timesPerformed}×</span>
+						</div>
+						<div class="freq-bar-wrap">
+							<div
+								class="freq-bar-fill"
+								class:freq-bar-zero={ex.timesPerformed === 0}
+								style="width: {Math.round(
+									(ex.timesPerformed / maxFreq) * 100,
+								)}%"
+							></div>
+						</div>
+					</li>
+				{/each}
+			</ul>
+		</div>
+
+		<div class="card">
+			<p class="card-title">Progressione per esercizio</p>
+			<ul class="prog-list">
+				{#each exerciseStats as ex}
+					<li class="prog-item">
+						<div class="prog-top">
+							<a href={resolve(`/exercises/${ex.id}`)} class="prog-name"
+								>{ex.name}</a
+							>
+							<span class="prog-pct">{ex.pct}%</span>
+						</div>
+						<div class="prog-bar-track">
+							<div class="prog-bar-fill" style="width:{ex.pct}%"></div>
+						</div>
+						<span class="prog-sub">{ex.done} / {ex.total} step</span>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
+</div>
 
 <style>
-	.page-header {
-		margin-bottom: 1.5rem;
+	.page-layout {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		max-width: 600px;
+		width: 100%;
+		margin: 0 auto;
+		padding-bottom: 2rem;
 	}
 
-	h1 {
+	.page-header h1 {
 		margin: 0;
-		font-size: 1.4rem;
+		font-size: 1.75rem;
 		font-weight: 700;
 		letter-spacing: -0.03em;
 		color: var(--color-text);
 	}
 
 	.sub {
-		margin: 0.3rem 0 0;
-		font-size: 0.82rem;
+		margin: 0.35rem 0 0;
+		font-size: 0.85rem;
 		color: var(--color-muted);
 	}
 
-	/* ── stat row: 2-col on mobile, 4-col on desktop ── */
+	/* ── stat row: 2x2 grid ── */
 	.stat-row {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.6rem;
-		margin-bottom: 0.6rem;
-	}
-
-	@media (min-width: 640px) {
-		.stat-row {
-			grid-template-columns: repeat(4, 1fr);
-			gap: 0.75rem;
-			margin-bottom: 0.75rem;
-		}
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.75rem;
 	}
 
 	.stat-card {
-		background: var(--color-card);
-		border: 1px solid var(--color-border);
-		border-radius: 10px;
-		padding: 0.9rem 1rem;
+		background: var(--color-card, #1c1c1e);
+		border: 1px solid var(--color-border, #2c2c2e);
+		border-radius: 12px;
+		padding: 1.25rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.12rem;
-	}
-
-	@media (min-width: 640px) {
-		.stat-card {
-			padding: 1.1rem 1.25rem;
-		}
+		gap: 0.25rem;
 	}
 
 	.stat-value {
-		font-size: 1.55rem;
+		font-size: 2rem;
 		font-weight: 700;
 		letter-spacing: -0.04em;
 		color: var(--color-text);
 		line-height: 1;
 	}
 
-	@media (min-width: 640px) {
-		.stat-value {
-			font-size: 1.9rem;
-		}
-	}
-
 	.stat-label {
-		font-size: 0.67rem;
+		font-size: 0.7rem;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		color: var(--color-muted);
-		margin-bottom: 0.4rem;
-		margin-top: 0.4rem;
+		margin-top: 0.5rem;
+		margin-bottom: 0.5rem;
 	}
 
 	.mini-bar-track {
 		width: 100%;
 		height: 3px;
-		background: var(--color-track);
+		background: var(--color-track, #2c2c2e);
 		border-radius: 2px;
 		overflow: hidden;
-		margin-bottom: 0.35rem;
+		margin-bottom: 0.25rem;
 	}
 
 	.mini-bar-fill {
 		height: 100%;
-		background: var(--color-accent);
+		background: var(--color-accent, #2c974b);
 		border-radius: 2px;
 		transition: width 0.4s ease;
 	}
 
 	.stat-sub {
-		font-size: 0.68rem;
+		font-size: 0.75rem;
 		color: var(--color-muted);
 		line-height: 1.3;
 	}
 
-	/* ── generic card spacing ── */
+	/* ── generic cards ── */
 	.card {
-		margin-bottom: 0.6rem;
+		background: var(--color-card, #1c1c1e);
+		border: 1px solid var(--color-border, #2c2c2e);
+		border-radius: 12px;
+		padding: 1.25rem;
 	}
 
-	@media (min-width: 640px) {
-		.card {
-			padding: 1.1rem 1.25rem;
-			margin-bottom: 0.75rem;
-		}
+	.card-title {
+		margin: 0 0 1.25rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-muted);
 	}
 
-	.card:last-child {
-		margin-bottom: 0;
+	.card-title-sub {
+		text-transform: none;
+		letter-spacing: normal;
+		font-weight: 400;
+		opacity: 0.7;
 	}
 
 	/* ── streak ── */
 	.streak-row {
 		display: flex;
+		justify-content: space-between;
 		align-items: center;
 	}
 
@@ -441,33 +434,27 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.2rem;
+		gap: 0.35rem;
 	}
 
 	.streak-val {
-		font-size: 1.75rem;
+		font-size: 2rem;
 		font-weight: 700;
 		letter-spacing: -0.04em;
 		color: var(--color-text);
 		line-height: 1;
 	}
 
-	@media (min-width: 640px) {
-		.streak-val {
-			font-size: 2rem;
-		}
-	}
-
 	.streak-lbl {
-		font-size: 0.65rem;
+		font-size: 0.75rem;
 		color: var(--color-muted);
 		text-align: center;
 	}
 
 	.streak-divider {
 		width: 1px;
-		height: 2.25rem;
-		background: var(--color-border);
+		height: 2.5rem;
+		background: var(--color-border, #2c2c2e);
 		flex-shrink: 0;
 	}
 
@@ -475,15 +462,9 @@
 	.bar-chart {
 		display: flex;
 		align-items: flex-end;
-		gap: 0.3rem;
-		height: 80px;
-	}
-
-	@media (min-width: 480px) {
-		.bar-chart {
-			gap: 0.5rem;
-			height: 100px;
-		}
+		gap: 0.5rem;
+		height: 120px;
+		padding-top: 0.5rem;
 	}
 
 	.bar-col {
@@ -492,14 +473,14 @@
 		flex-direction: column;
 		align-items: center;
 		height: 100%;
-		gap: 0.2rem;
+		gap: 0.35rem;
 	}
 
 	.bar-count {
-		font-size: 0.6rem;
+		font-size: 0.7rem;
 		color: var(--color-muted);
 		font-variant-numeric: tabular-nums;
-		min-height: 0.85rem;
+		min-height: 1rem;
 	}
 
 	.bar-wrap {
@@ -507,25 +488,27 @@
 		width: 100%;
 		display: flex;
 		align-items: flex-end;
+		border-bottom: 1px solid var(--color-track, #2c2c2e);
 	}
 
 	.bar-fill {
 		width: 100%;
-		background: var(--color-accent);
-		border-radius: 3px 3px 0 0;
-		min-height: 3px;
+		background: var(--color-accent, #2c974b);
+		border-radius: 2px 2px 0 0;
+		min-height: 2px;
 		transition: height 0.35s ease;
 	}
 
 	.bar-fill.bar-empty {
-		background: var(--color-track);
-		height: 3px !important;
+		background: transparent;
+		height: 0 !important;
 	}
 
 	.bar-label {
-		font-size: 0.58rem;
+		font-size: 0.65rem;
 		color: var(--color-muted);
 		white-space: nowrap;
+		margin-top: 0.2rem;
 	}
 
 	/* ── frequency list ── */
@@ -535,75 +518,50 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.6rem;
+		gap: 1.25rem;
 	}
 
 	.freq-item {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		grid-template-rows: auto auto;
-		gap: 0.2rem 0.6rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.freq-header {
+		display: flex;
+		justify-content: space-between;
 		align-items: center;
 	}
 
 	.freq-name {
-		font-size: 0.82rem;
+		font-size: 0.95rem;
+		font-weight: 500;
 		color: var(--color-text);
-		grid-column: 1;
-		grid-row: 1;
 	}
 
 	.freq-count {
-		font-size: 0.75rem;
+		font-size: 0.85rem;
 		color: var(--color-muted);
 		font-variant-numeric: tabular-nums;
-		grid-column: 2;
-		grid-row: 1;
-		text-align: right;
 	}
 
 	.freq-bar-wrap {
-		height: 5px;
-		background: var(--color-track);
-		border-radius: 3px;
+		height: 4px;
+		width: 100%;
+		background: var(--color-track, #2c2c2e);
+		border-radius: 2px;
 		overflow: hidden;
-		grid-column: 1 / -1;
-		grid-row: 2;
 	}
 
 	.freq-bar-fill {
 		height: 100%;
-		background: var(--color-accent);
-		border-radius: 3px;
+		background: var(--color-accent, #2c974b);
+		border-radius: 2px;
 		transition: width 0.4s ease;
 	}
 
 	.freq-bar-fill.freq-bar-zero {
 		width: 0 !important;
-	}
-
-	/* on wider screens: name + bar + count in one row */
-	@media (min-width: 480px) {
-		.freq-item {
-			grid-template-columns: 120px 1fr 2.5rem;
-			grid-template-rows: auto;
-			gap: 0.75rem;
-			align-items: center;
-		}
-
-		.freq-name {
-			grid-column: 1;
-			grid-row: 1;
-		}
-		.freq-bar-wrap {
-			grid-column: 2;
-			grid-row: 1;
-			height: 6px;
-		}
-		.freq-count {
-			grid-column: 3;
-			grid-row: 1;
-		}
 	}
 
 	/* ── per-exercise progress ── */
@@ -613,13 +571,13 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.85rem;
+		gap: 1.25rem;
 	}
 
 	.prog-item {
 		display: flex;
 		flex-direction: column;
-		gap: 0.28rem;
+		gap: 0.4rem;
 	}
 
 	.prog-top {
@@ -630,7 +588,7 @@
 	}
 
 	.prog-name {
-		font-size: 0.85rem;
+		font-size: 0.95rem;
 		font-weight: 500;
 		color: var(--color-text);
 		text-decoration: none;
@@ -645,7 +603,7 @@
 	}
 
 	.prog-pct {
-		font-size: 0.75rem;
+		font-size: 0.85rem;
 		color: var(--color-muted);
 		font-variant-numeric: tabular-nums;
 		flex-shrink: 0;
@@ -654,20 +612,20 @@
 	.prog-bar-track {
 		width: 100%;
 		height: 4px;
-		background: var(--color-track);
+		background: var(--color-track, #2c2c2e);
 		border-radius: 2px;
 		overflow: hidden;
 	}
 
 	.prog-bar-fill {
 		height: 100%;
-		background: var(--color-accent);
+		background: var(--color-accent, #2c974b);
 		border-radius: 2px;
 		transition: width 0.4s ease;
 	}
 
 	.prog-sub {
-		font-size: 0.7rem;
+		font-size: 0.75rem;
 		color: var(--color-muted);
 	}
 </style>
