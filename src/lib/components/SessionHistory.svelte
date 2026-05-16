@@ -81,7 +81,7 @@
 						</li>
 					{/each}
 
-					{#if sessionQuickExercises}
+					{#if sessionQuickExercises && sessionQuickExercises?.length > 0}
 						<div class="session-ex">
 							<span class="sex-name">Quick exercises</span>
 							<span class="sex-step">
