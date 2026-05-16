@@ -291,15 +291,42 @@
 		right: 0;
 		z-index: 100;
 
-		background: transparent;
-		backdrop-filter: blur(16px) saturate(1.4);
-		-webkit-backdrop-filter: blur(16px) saturate(1.4);
-
 		/* Respect notches / home indicators on iOS */
 		padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
 
 		display: flex;
 		justify-content: stretch;
+	}
+
+	/* ── Progressive Blur Background ── */
+	.action-bar::before {
+		content: "";
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+
+		/* Extend the blur box a few rems above the actual container */
+		height: calc(100% + 2rem);
+		z-index: -1;
+
+		/* Prevent the extended background from blocking clicks on elements beneath it */
+		pointer-events: none;
+
+		/* The actual blur effect */
+		backdrop-filter: blur(10px) saturate(1.4);
+		-webkit-backdrop-filter: blur(10px) saturate(1.4);
+
+		/* Use a mask to fade the blur: transparent at the top, solid black (fully visible) at the bottom */
+		mask-image: linear-gradient(to bottom, transparent 0%, black 60%);
+		-webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 60%);
+
+		/* Add a subtle dark gradient to match your app's theme (using your var(--color-card) base) */
+		background: linear-gradient(
+			to bottom,
+			transparent 0%,
+			rgba(28, 28, 30, 0.3) 100%
+		);
 	}
 
 	.btn-log {
