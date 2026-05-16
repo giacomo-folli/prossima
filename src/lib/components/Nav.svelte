@@ -9,9 +9,7 @@
 </script>
 
 <nav class="tab-nav">
-	<a href={resolve("/training")} class="tab" class:active={isTraining}
-		>Allenamento</a
-	>
+	<a href={resolve("/training")} class="tab" class:active={isTraining}>Home</a>
 	<a href={resolve("/exercises")} class="tab" class:active={isExercises}
 		>Esercizi</a
 	>
@@ -25,7 +23,9 @@
 
 <style>
 	.tab-nav {
+		width: 100%;
 		display: flex;
+		justify-content: space-between;
 		border-bottom: 1px solid var(--color-border);
 		margin-bottom: 1.75rem;
 		overflow-x: auto;
