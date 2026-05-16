@@ -67,7 +67,7 @@
 					>
 				</div>
 				<div class="session-exercises" class:hidden={session.hidden}>
-					{#each session.exercises.filter((e) => e.type == "exercise") as ex}
+					{#each session.exercises.filter((e) => !e.type || e.type == "exercise") as ex}
 						<li class="session-ex">
 							<span class="sex-name">{ex.exerciseName}</span>
 							<span class="sex-step">{ex.stepLabel}</span>
