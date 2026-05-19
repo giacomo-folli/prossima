@@ -46,7 +46,7 @@ export function parseYamlString(string: string = ""): {
 		const parsedQuickExercises = parsedData?.["quick-exercises"] ?? [];
 
 		const exercisesArray: Exercise[] = parsedExercises.map(([key, data]) => {
-			let lastCompletedStepIndex = data.steps.findIndex(
+			let lastCompletedStepIndex = data.steps.findLastIndex(
 				(s) => s?.completed === true,
 			);
 			let firstUncompletedStep = 0;

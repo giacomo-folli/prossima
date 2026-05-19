@@ -42,6 +42,7 @@
 				exercises: parsedExercises,
 				quickExercises: parsedQuickExercises,
 			} = parseYamlString(yamlText);
+
 			exercises.set(parsedExercises ?? current_exercises);
 			quickExercises.set(parsedQuickExercises ?? []);
 
