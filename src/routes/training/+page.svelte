@@ -150,9 +150,6 @@
 		flex-direction: column;
 		gap: 2rem;
 		width: 100%;
-		/* Mobile-first: full width with comfortable padding */
-		padding: 0 1rem 0;
-		/* Desktop: constrain and centre */
 		max-width: 600px;
 		margin: 0 auto;
 	}

@@ -206,3 +206,9 @@ a {
 	-ms-overflow-style: none;
 }
 /* -------------------------------------------------- */
+
+button,
+a {
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+}

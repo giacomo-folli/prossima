@@ -127,7 +127,7 @@
 			{/if}
 		</div>
 		<p class="section-desc">
-			Scrivi o incolla la tua configurazione. Viene salvata nel browser.
+			Scrivi o incolla la tua configurazione.
 		</p>
 
 		<div class="textarea-wrapper">
@@ -305,14 +305,14 @@
 	/* ---- Textarea ---- */
 	.yaml-textarea {
 		width: 100%;
-		min-height: 360px;
+		min-height: 400px;
 		background: var(--color-textarea-bg);
 		color: var(--color-text);
 		border: 1px solid var(--color-textarea-border);
 		border-radius: 0.85rem;
 		padding: 0.75rem 2.8rem 0.75rem 0.75rem;
 		font-family: "Courier New", monospace;
-		font-size: 0.78rem;
+		font-size: 16;
 		line-height: 1.5;
 		resize: vertical;
 		box-sizing: border-box;
