@@ -21,6 +21,26 @@
             "purpose": "any"
         }
     ],
+    "screenshots": [
+        {
+            "src": "/prossima/screenshots/screenshot-1.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "platform": "wide"
+        },
+        {
+            "src": "/prossima/screenshots/screenshot-2.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "platform": "wide"
+        },
+        {
+            "src": "/prossima/screenshots/screenshot-3.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "platform": "wide"
+        }
+    ],
     "id": "com.giacomofolli.prossima",
     "dir": "ltr",
     "lang": "it",
