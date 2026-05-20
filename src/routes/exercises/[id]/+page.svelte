@@ -85,7 +85,7 @@
 				{#if exercise.steps && exercise.current_step_index !== undefined}
 					<StepList
 						steps={exercise.steps}
-						currentStepIndex={exercise.current_step_index}
+						current_step_index={exercise.current_step_index}
 					/>
 				{/if}
 			</div>

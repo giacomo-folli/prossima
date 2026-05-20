@@ -1,8 +1,10 @@
 <script lang="ts">
 	import type { Step } from "../types";
 
-	let { steps, currentStepIndex }: { steps: Step[]; currentStepIndex: number } =
-		$props();
+	let {
+		steps,
+		current_step_index,
+	}: { steps: Step[]; current_step_index: number } = $props();
 
 	const orderedSteps = $derived(
 		steps.toSorted((a, b) => a.step_index - b.step_index),
@@ -13,7 +15,7 @@
 	{#each orderedSteps as step, i}
 		{@const state = step.completed
 			? "completed"
-			: i === currentStepIndex
+			: i === current_step_index
 				? "current"
 				: "future"}
 		<li class="step {state}">

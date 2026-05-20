@@ -9,6 +9,7 @@
 	import { resolve } from "$app/paths";
 
 	let pwaWebManifest = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : "");
+	let isSignedIn = $state(false);
 
 	onMount(() => {
 		if (pwaInfo) {
@@ -17,14 +18,28 @@
 			});
 		}
 
+		const privRoutes = ["/analytics", "/training", "/settings", "/exercises"];
+
+		const handleAuthRedirect = (session: unknown) => {
+			const currentRoute = page.url.pathname;
+			isSignedIn = !!session;
+			const protectedRouteActive = privRoutes.some((r) =>
+				currentRoute.includes(r),
+			);
+
+			if (!isSignedIn && protectedRouteActive) goto(resolve("/auth"));
+			else if (isSignedIn && currentRoute.includes("/auth"))
+				goto(resolve("/training"));
+		};
+
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			handleAuthRedirect(session);
+		});
+
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange((event, session) => {
-			const currentRoute = page.url.pathname;
-			const isSignedIn = !!session;
-
-			if (!isSignedIn) goto(resolve("/auth"));
-			else if (currentRoute.includes("/auth")) goto(resolve("/training"));
+		} = supabase.auth.onAuthStateChange((_event, session) => {
+			handleAuthRedirect(session);
 		});
 
 		return () => {
@@ -46,8 +61,10 @@
 	></script>
 </svelte:head>
 
-<div class="shell">
-	<Nav />
+<div class="shell" class:isSignedIn>
+	{#if isSignedIn}
+		<Nav />
+	{/if}
 	{@render children()}
 </div>
 
@@ -55,8 +72,10 @@
 	.shell {
 		max-width: 960px;
 		margin: 0 auto;
-		padding: 1.25rem 1rem 4rem;
+	}
 
+	.shell.isSignedIn {
+		padding: 1.25rem 1rem 4rem;
 		overflow-y: auto;
 		height: 100%;
 		-webkit-overflow-scrolling: touch;
