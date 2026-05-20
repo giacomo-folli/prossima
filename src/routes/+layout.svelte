@@ -20,13 +20,6 @@
 	<!-- Inietta il tag del manifest generato da Vite -->
 	{@html pwaWebManifest}
 
-	<!-- Meta tag fondamentali per far visualizzare la PWA a tutto schermo su iPhone -->
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta
-		name="apple-mobile-web-app-status-bar-style"
-		content="black-translucent"
-	/>
-
 	<script
 		async
 		src="https://cdn.jsdelivr.net/npm/pwacompat"
