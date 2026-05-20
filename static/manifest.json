@@ -9,13 +9,25 @@
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/prossima/apple_logo.png",
+            "src": "/prossima/icon-64.png",
+            "sizes": "64x64",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/prossima/icon-180.png",
             "sizes": "180x180",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/prossima/logo.png",
+            "src": "/prossima/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/prossima/icon-1024.png",
             "sizes": "1024x1024",
             "type": "image/png",
             "purpose": "any"
