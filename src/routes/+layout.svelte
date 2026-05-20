@@ -38,6 +38,10 @@
 		max-width: 960px;
 		margin: 0 auto;
 		padding: 1.25rem 1rem 4rem;
+
+		overflow-y: auto;
+		height: 100%;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	@media (min-width: 600px) {
