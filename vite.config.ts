@@ -3,9 +3,13 @@ import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+	base: '/prossima/',
+
 	plugins: [
 		sveltekit(),
 		SvelteKitPWA({
+			base: '/prossima/',
+
 			strategies: "generateSW",
 			srcDir: "src",
 			filename: "sw.js",
@@ -51,8 +55,8 @@ export default defineConfig({
 					"client/**/*.{js,css,ico,png,svg,webp,webmanifest,woff,woff2}",
 					"prerendered/**/*.html", // Rimuovi se continua a darti il warning
 				],
-				navigateFallback: "/200.html",
-				navigateFallbackAllowlist: [/^\/$/],
+				navigateFallback: "/prossima/200.html",
+                navigateFallbackAllowlist: [/^\/prossima\/$/],
 			},
 		}),
 	],
