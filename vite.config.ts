@@ -45,11 +45,12 @@ export default defineConfig({
 				],
 			},
 			workbox: {
-				// Catch everything generated in the build output
+				// Modificato: prende i file dall'output client finale del build statico
+				globDirectory: ".svelte-kit/output",
 				globPatterns: [
-					"**/*.{js,css,html,ico,png,svg,webp,webmanifest,woff,woff2}",
+					"client/**/*.{js,css,ico,png,svg,webp,webmanifest,woff,woff2}",
+					"prerendered/**/*.html", // Rimuovi se continua a darti il warning
 				],
-				// Clean navigation fallback for Single Page Apps (SPA)
 				navigateFallback: "/200.html",
 				navigateFallbackAllowlist: [/^\/$/],
 			},
