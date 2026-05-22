@@ -213,9 +213,15 @@ importers:
       '@sveltejs/adapter-static':
         specifier: ^3.0.10
         version: 3.0.10(@sveltejs/kit@2.59.1(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.55.5)(vite@8.0.11(@types/node@25.9.0)(terser@5.47.1)(yaml@2.8.4)))(svelte@5.55.5)(typescript@6.0.3)(vite@8.0.11(@types/node@25.9.0)(terser@5.47.1)(yaml@2.8.4)))
+      '@types/luxon':
+        specifier: ^3.7.1
+        version: 3.7.1
       '@vite-pwa/sveltekit':
         specifier: ^1.1.0
         version: 1.1.0(@sveltejs/kit@2.59.1(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.55.5)(vite@8.0.11(@types/node@25.9.0)(terser@5.47.1)(yaml@2.8.4)))(svelte@5.55.5)(typescript@6.0.3)(vite@8.0.11(@types/node@25.9.0)(terser@5.47.1)(yaml@2.8.4)))(vite@8.0.11(@types/node@25.9.0)(terser@5.47.1)(yaml@2.8.4))(workbox-build@7.4.1)(workbox-window@7.4.1)
+      luxon:
+        specifier: ^3.7.2
+        version: 3.7.2
       yaml:
         specifier: ^2.8.4
         version: 2.8.4
@@ -1173,6 +1179,9 @@ packages:
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
+  '@types/luxon@3.7.1':
+    resolution: {integrity: sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==}
+
   '@types/node@25.9.0':
     resolution: {integrity: sha512-AOQwYUNolgy3VosiRqXrACUXTN8nJUtPl7FJXMqZVyxiiCLhQuG3jXKvCS1ALr+Y2OmZhzzLVlYPEqJaiqkaJQ==}
 
@@ -1789,6 +1798,10 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  luxon@3.7.2:
+    resolution: {integrity: sha512-vtEhXh/gNjI9Yg1u4jX/0YVPMvxzHuGgCm6tC5kZyb08yjGWGnqAjGJvcXbqQR2P3MyMEFnRbpcdFS6PBcLqew==}
+    engines: {node: '>=12'}
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -3304,6 +3317,8 @@ snapshots:
 
   '@types/estree@1.0.9': {}
 
+  '@types/luxon@3.7.1': {}
+
   '@types/node@25.9.0':
     dependencies:
       undici-types: 7.24.6
@@ -3931,6 +3946,8 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  luxon@3.7.2: {}
 
   magic-string@0.30.21:
     dependencies:

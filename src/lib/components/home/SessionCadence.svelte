@@ -1,78 +1,75 @@
 <script lang="ts">
 	import { sessions } from "$lib/stores/sessions";
-	import {
-		avgSessionsPerWeek,
-		currentStreak,
-		formatLastSessionRelative,
-		longestStreak,
-	} from "$lib/utils/sessions-stats";
+	import { DateTime } from "luxon";
 
-	const totalSessions = $derived($sessions.length);
-	const streak = $derived(currentStreak($sessions));
-	const record = $derived(longestStreak($sessions));
-	const avgWeek = $derived(avgSessionsPerWeek($sessions));
-	const lastRelative = $derived(formatLastSessionRelative($sessions));
+	// Example of deriving formatted data for the recent cards.
+	// In a real app, 'is_pr' or 'volume' would come from your backend data.
+	const recentSessions = $derived(
+		$sessions
+			.slice(0, 3) // Grab the latest few
+			.map((s) => ({
+				id: s.id,
+				title: s.exercises.map((e) => e.name).join(" - "),
+				exercisesCount: s.exercises.length,
+				date: DateTime.fromISO(s.completed_at).toFormat("LLL d"),
+			})),
+	);
 </script>
 
-<section class="cadence">
-	<p class="ios-section-label">Sessioni</p>
-	<div class="chip-row">
-		<div class="chip ios-card">
-			<span class="chip-value">{totalSessions}</span>
-			<span class="chip-label">Totali</span>
-		</div>
-		<div class="chip ios-card">
-			<span class="chip-value">{avgWeek}</span>
-			<span class="chip-label">/ settimana</span>
-		</div>
-		<div class="chip ios-card">
-			<span class="chip-value">{streak}</span>
-			<span class="chip-label">Streak</span>
-		</div>
-		<div class="chip ios-card">
-			<span class="chip-value">{record}</span>
-			<span class="chip-label">Record</span>
-		</div>
+<section class="recent-section">
+	<p class="ios-section-label">Recent</p>
+
+	<div class="session-list">
+		{#each recentSessions as session (session.id)}
+			<div class="session-card">
+				<div class="card-left">
+					<h3 class="session-name">{session.date}</h3>
+					<span class="session-meta"
+						>{session.exercisesCount || "-"} Exercises</span
+					>
+					<!-- <span class="session-meta">{session.title || "-"}</span> -->
+				</div>
+			</div>
+		{/each}
 	</div>
-	<p class="last-hint">Ultima sessione: {lastRelative}</p>
 </section>
 
 <style>
-	.cadence {
-		margin-bottom: 1.25rem;
+	.recent-section {
+		margin-bottom: 2rem;
 	}
 
-	.chip-row {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 0.5rem;
-	}
-
-	.chip {
+	.session-list {
 		display: flex;
 		flex-direction: column;
+		gap: 0.75rem; /* Space between cards */
+	}
+
+	.session-card {
+		display: flex;
+		justify-content: space-between;
 		align-items: center;
-		padding: 0.75rem 0.35rem;
-		text-align: center;
+		background-color: #f8fafc; /* Very light gray/slate */
+		border: 1px solid #e2e8f0;
+		border-radius: 1.5rem; /* Large border radius for the pill shape */
+		padding: 1.25rem 1.5rem;
 	}
 
-	.chip-value {
-		font-size: 1.25rem;
-		font-weight: 700;
-		font-variant-numeric: tabular-nums;
-		line-height: 1.1;
-		color: var(--color-text);
+	.card-left {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
 	}
 
-	.chip-label {
-		font-size: 0.625rem;
-		color: var(--color-muted);
-		margin-top: 0.2rem;
+	.session-name {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 600;
+		color: #0f172a;
 	}
 
-	.last-hint {
-		margin: 0.5rem 0 0;
-		font-size: 0.8125rem;
-		color: var(--color-muted);
+	.session-meta {
+		font-size: 0.875rem;
+		color: #64748b;
 	}
 </style>

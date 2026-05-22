@@ -7,6 +7,8 @@
 }
 
 :root {
+	--font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+
 	--color-bg: #f2f2f7;
 	--color-card: #ffffff;
 	--color-border: rgba(60, 60, 67, 0.12);
@@ -14,18 +16,17 @@
 	--color-contrast: #f2f2f7;
 	--color-muted: #8e8e93;
 	--color-accent: #2d6a4f;
-	--color-accent-dim: #d8ede4;
+	--color-accent-dim: #d0f3e4;
 	--color-track: #e5e5ea;
 	--color-danger: #ff3b30;
 	--color-tab-bar: rgba(255, 255, 255, 0.82);
-	--tab-bar-height: 49px;
-	--page-padding: 1rem;
+	--tab-bar-height: 62px;
+	--page-padding: 0.8rem;
 	--radius-card: 12px;
 	--radius-lg: 16px;
 	--shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
-	font-family:
-		-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui,
-		sans-serif;
+
+	font-family: var(--font-sans);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -124,12 +125,12 @@ button:disabled,
 	width: 100%;
 	max-width: 600px;
 	margin: 0 auto;
-	padding: 0 var(--page-padding);
+	/* padding: 0 var(--page-padding); */
 }
 
 .large-title {
 	margin: 0;
-	font-size: 2.125rem;
+	font-size: 2rem;
 	font-weight: 700;
 	letter-spacing: -0.03em;
 	line-height: 1.1;
@@ -138,7 +139,8 @@ button:disabled,
 
 .page-subtitle {
 	margin: 0.35rem 0 0;
-	font-size: 0.9375rem;
+	font-size: 0.8rem;
+	letter-spacing: 0.1em;
 	color: var(--color-muted);
 }
 
@@ -153,10 +155,10 @@ button:disabled,
 .ios-section-label {
 	display: block;
 	margin: 0 0 0.5rem;
-	font-size: 0.6875rem;
+	font-size: 0.7rem;
 	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: 0.06em;
+	letter-spacing: 0.1em;
 	color: var(--color-muted);
 }
 
@@ -231,7 +233,7 @@ button:disabled,
 	margin: 0 0 0.6rem;
 	font-size: 0.72rem;
 	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.05em;
 	color: var(--color-muted);
 }
 

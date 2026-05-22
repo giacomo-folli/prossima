@@ -61,10 +61,15 @@
 <style>
 	.card {
 		display: block;
+		width: 100%;
+		box-sizing: border-box;
+
 		text-decoration: none;
 		color: inherit;
 		padding: 1.25rem 1.125rem;
-		transition: transform 0.15s ease, box-shadow 0.15s ease;
+		transition:
+			transform 0.15s ease,
+			box-shadow 0.15s ease;
 		cursor: pointer;
 	}
 
@@ -81,6 +86,13 @@
 		justify-content: space-between;
 		align-items: baseline;
 		margin-bottom: 0.75rem;
+
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		flex: 1;
+		min-width: 0;
+		margin-right: 0.5rem;
 	}
 
 	.name {
@@ -94,6 +106,7 @@
 		font-size: 0.8rem;
 		color: var(--color-muted);
 		font-variant-numeric: tabular-nums;
+		flex-shrink: 0;
 	}
 
 	.card-body {
@@ -114,10 +127,11 @@
 
 	.step-value {
 		text-overflow: ellipsis;
-
-		/* Needed to make it work */
 		overflow: hidden;
 		white-space: nowrap;
+
+		flex: 1; /* Take up the remaining space */
+		min-width: 0; /* Allow the flex item to shrink below its text width */
 	}
 
 	.step-label.next {

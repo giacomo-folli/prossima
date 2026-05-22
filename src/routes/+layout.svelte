@@ -12,10 +12,7 @@
 	let pwaWebManifest = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : "");
 	let isSignedIn = $state(false);
 
-	const hideTabBar = $derived(
-		page.url.pathname.includes("/training") ||
-			/\/exercises\/[^/]+\/?$/.test(page.url.pathname),
-	);
+	const hideTabBar = $derived(page.url.pathname.includes("/training"));
 
 	onMount(() => {
 		if (pwaInfo) {
