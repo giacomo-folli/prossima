@@ -36,6 +36,9 @@ jobs:
 
       - name: Build site
         run: pnpm build
+        env:
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}        
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
