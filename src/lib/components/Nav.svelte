@@ -55,7 +55,7 @@
 		text-decoration: none;
 		color: var(--color-muted);
 		min-height: 44px;
-		padding-top: 0.25rem;
+		padding-top: 1.5rem;
 		transition: color 0.15s ease;
 	}
 
