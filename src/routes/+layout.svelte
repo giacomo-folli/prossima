@@ -23,11 +23,11 @@
 		}
 
 		const privRoutes = [
-			"/analytics",
-			"/training",
-			"/settings",
-			"/exercises",
-			"/home",
+			"analytics",
+			"training",
+			"settings",
+			"exercises",
+			"home",
 		];
 
 		const handleAuthRedirect = async (session: unknown) => {
@@ -38,7 +38,7 @@
 			);
 
 			if (!isSignedIn && protectedRouteActive) goto(resolve("/auth"));
-			else if (isSignedIn && currentRoute.includes("/auth")) {
+			else if (isSignedIn && currentRoute.includes("auth")) {
 				await sessions.init();
 				goto(resolve("/home"));
 			} else if (isSignedIn) {
