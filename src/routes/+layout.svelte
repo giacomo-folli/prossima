@@ -8,6 +8,7 @@
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { sessions } from "$lib/stores/sessions";
+	import { user } from "$lib/stores/user";
 
 	let pwaWebManifest = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : "");
 	let isSignedIn = $state(false);
@@ -47,16 +48,21 @@
 
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			handleAuthRedirect(session);
+
+			$user = session?.user ?? null;
 		});
 
 		const {
 			data: { subscription },
 		} = supabase.auth.onAuthStateChange((_event, session) => {
 			handleAuthRedirect(session);
+
+			$user = session?.user ?? null;
 		});
 
 		return () => {
 			subscription.unsubscribe();
+			$user = null;
 		};
 	});
 

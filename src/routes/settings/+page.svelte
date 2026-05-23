@@ -2,11 +2,10 @@
 <script lang="ts">
 	import { exercises } from "$lib/stores/exercises";
 	import { sessions } from "$lib/stores/sessions";
+	import { user } from "$lib/stores/user";
 	import { supabase } from "$lib/supabase";
 
 	let loading = $state(false);
-
-	let icloudEnabled = $state(true);
 
 	async function handleLogout() {
 		loading = true;
@@ -43,7 +42,7 @@
 		<div class="avatar">M</div>
 		<div class="profile-info">
 			<p class="profile-name">Marco Rossi</p>
-			<p class="profile-email">marco@example.com</p>
+			<p class="profile-email">{$user?.email}</p>
 		</div>
 		<i class="ti ti-chevron-right profile-chevron" aria-hidden="true"></i>
 	</div>
