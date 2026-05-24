@@ -34,12 +34,13 @@ export function daysWithActivity(
 		active.add(toDateKey(d));
 	}
 
-	for (const ex of exercises) {
-		for (const step of ex.steps ?? []) {
-			if (!step.completed_at) continue;
-			active.add(toDateKey(new Date(step.completed_at)));
-		}
-	}
+	// TODO: check if can remove or is needed elsewhere
+	// for (const ex of exercises) {
+	// 	for (const step of ex.steps ?? []) {
+	// 		if (!step.completed_at) continue;
+	// 		active.add(toDateKey(new Date(step.completed_at)));
+	// 	}
+	// }
 
 	return active;
 }

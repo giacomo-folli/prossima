@@ -9,6 +9,7 @@
 	import { resolve } from "$app/paths";
 	import { sessions } from "$lib/stores/sessions";
 	import { user } from "$lib/stores/user";
+	import { loadUser } from "$lib/utils/storage";
 
 	let pwaWebManifest = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : "");
 	let isSignedIn = $state(false);
@@ -49,7 +50,14 @@
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			handleAuthRedirect(session);
 
-			$user = session?.user ?? null;
+			loadUser().then((user_profile) => {
+				$user = user_profile
+					? {
+							...user_profile,
+							email: session?.user.email,
+						}
+					: null;
+			});
 		});
 
 		const {
@@ -57,7 +65,14 @@
 		} = supabase.auth.onAuthStateChange((_event, session) => {
 			handleAuthRedirect(session);
 
-			$user = session?.user ?? null;
+			loadUser().then((user_profile) => {
+				$user = user_profile
+					? {
+							...user_profile,
+							email: session?.user.email,
+						}
+					: null;
+			});
 		});
 
 		return () => {

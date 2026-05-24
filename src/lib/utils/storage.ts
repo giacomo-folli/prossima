@@ -1,5 +1,6 @@
-import type { Exercise, TrainingSession } from "../types";
+import type { Exercise, TrainingSession, UserProfile } from "../types";
 import { supabase } from "$lib/supabase";
+import type { User } from "@supabase/supabase-js";
 
 /**
  * Loads all exercises along with their nested, ordered steps from Supabase.
@@ -86,11 +87,13 @@ export async function updateStepCompletion(
 	}
 }
 
-export async function loadTrainingSessions(): Promise<TrainingSession[] | null> {
+export async function loadTrainingSessions(): Promise<
+	TrainingSession[] | null
+> {
 	try {
 		const { data, error } = await supabase
 			.from("training_sessions")
-			.select("id, completed_at, exercises")
+			.select("id, completed_at, exercises, notes, liked")
 			.order("completed_at", { ascending: false });
 
 		if (error) {
@@ -161,4 +164,42 @@ export async function clearTrainingSessions(): Promise<boolean> {
 		console.error("Unexpected failure clearing training sessions:", err);
 		return false;
 	}
+}
+
+export async function loadUser(): Promise<UserProfile | null> {
+	try {
+		const { data, error } = await supabase
+			.from("profiles")
+			.select("id, display_name, full_name, avatar_url")
+			.single();
+
+		if (error) {
+			console.error("Supabase error loading user profile:", error.message);
+			return null;
+		}
+
+		return (data ?? null) as UserProfile;
+	} catch (err) {
+		console.error("Unexpected failure loading training sessions:", err);
+		return null;
+	}
+}
+
+// src/lib/utils/storage.ts
+export async function updateTrainingSession(
+	id: string,
+	patch: Partial<Omit<TrainingSession, "id" | "user_id">>,
+): Promise<TrainingSession | null> {
+	const { data, error } = await supabase
+		.from("training_sessions")
+		.update(patch)
+		.eq("id", id)
+		.select()
+		.single();
+
+	if (error) {
+		console.error("updateTrainingSession:", error.message);
+		return null;
+	}
+	return data as TrainingSession;
 }

@@ -22,6 +22,15 @@ export interface Exercise {
  * exercises included in that session. */
 export interface TrainingSession {
 	id?: string;
+	notes?: string;
+	liked?: boolean;
 	completed_at: string;
 	exercises: Exercise[];
+}
+
+export interface UserProfile {
+	id?: string;
+	display_name?: string;
+	full_name?: string;
+	avar_url?: string;
 }

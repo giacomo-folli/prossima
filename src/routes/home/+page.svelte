@@ -8,7 +8,7 @@
 <main class="page home-page">
 	<header class="home-header">
 		<p class="page-subtitle">Bentornato/a</p>
-		<h1 class="large-title">{$user?.user_metadata.display_name}</h1>
+		<h1 class="large-title">{$user?.display_name}</h1>
 	</header>
 
 	<StartSessionCard />

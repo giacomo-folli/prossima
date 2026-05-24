@@ -1,4 +1,4 @@
 import { writable } from "svelte/store";
-import type { User } from "@supabase/supabase-js";
+import type { UserProfile } from "$lib/types";
 
-export const user = writable<User | null>(null);
+export const user = writable<(UserProfile & { email?: string }) | null>(null);

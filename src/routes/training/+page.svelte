@@ -4,6 +4,7 @@
 	import { sessions } from "$lib/stores/sessions";
 	import CelebrationOverlay from "$lib/components/CelebrationOverlay.svelte";
 	import type { Exercise } from "$lib/types";
+	import { goto } from "$app/navigation";
 
 	type SessionExercise = {
 		id: string;
@@ -42,24 +43,19 @@
 	let celebrating = $state(false);
 
 	async function logSession() {
-		if (program.length === 0) return;
-		const snapshot: Exercise[] = program
-			.filter((ex) => ex.checked)
-			.map((p) => {
-				const { checked, ...rest } = p;
-				return { ...rest, type: "exercise" };
-			});
+		let snapshot: Exercise[] = [];
 
+		selectedExercises.forEach((val) => {
+			snapshot.push({ id: val.id, name: val.name, type: "exercise" });
+		});
 		selectedQuick.forEach((val) => {
-			snapshot.push({
-				id: val.id,
-				name: val.name,
-				type: "quick-exercise",
-			});
+			snapshot.push({ id: val.id, name: val.name, type: "quick-exercise" });
 		});
 
 		await sessions.logSession(snapshot);
 		celebrating = true;
+
+		goto(resolve("/home"));
 	}
 
 	function toggleQuick(qEx: SessionExercise) {
@@ -89,59 +85,62 @@
 />
 
 <div class="training-page">
-<a href={resolve("/home")} class="nav-back">
-	<i class="ti ti-chevron-left" aria-hidden="true"></i>
-	Home
-</a>
-<h1 class="page-title">Registra sessione</h1>
+	<a href={resolve("/home")} class="nav-back">
+		<i class="ti ti-chevron-left" aria-hidden="true"></i>
+		Home
+	</a>
+	<h1 class="page-title">Registra sessione</h1>
 
-<div class="training-layout">
-	<section class="col-program">
-		<header class="col-header">
-			<div>
-				<h2>Programma attuale</h2>
-				<p class="col-sub">{program.length} esercizi</p>
-			</div>
-		</header>
+	<div class="training-layout">
+		<section class="col-program">
+			<header class="col-header">
+				<div>
+					<h2>Programma attuale</h2>
+					<p class="col-sub">{program.length} esercizi</p>
+				</div>
+			</header>
 
-		<ol class="program-list">
-			{#each program as item (item.id)}
-				<li class="program-item" class:active={selectedExercises.has(item.id)}>
-					<div
-						role="presentation"
-						class="program-link"
-						onclick={() => toggleExercise(item)}
+			<ol class="program-list">
+				{#each program as item (item.id)}
+					<li
+						class="program-item"
+						class:active={selectedExercises.has(item.id)}
 					>
-						<span class="ex-name">{item.name}</span>
-						<span class="ex-step">{item.step_label}</span>
-					</div>
-				</li>
-			{/each}
-		</ol>
-	</section>
-
-	{#if quickExercises && quickExercises.length > 0}
-		<section class="quick-section">
-			<p class="quick-label">Esercizi rapidi</p>
-			<div class="quick-grid">
-				{#each quickExercises as ex (ex.id)}
-					<button
-						class="quick-box"
-						class:active={selectedQuick.has(ex.id)}
-						onclick={() => toggleQuick(ex)}
-						aria-pressed={selectedQuick.has(ex.id)}
-					>
-						<span class="quick-icon" aria-hidden="true">{ex.icon}</span>
-						<span class="quick-label-text">{ex.name}</span>
-					</button>
+						<div
+							role="presentation"
+							class="program-link"
+							onclick={() => toggleExercise(item)}
+						>
+							<span class="ex-name">{item.name}</span>
+							<span class="ex-step">{item.step_label}</span>
+						</div>
+					</li>
 				{/each}
-			</div>
+			</ol>
 		</section>
-	{/if}
 
-	<!-- Spacer so content doesn't hide behind the fixed bar -->
-	<div class="action-spacer" aria-hidden="true"></div>
-</div>
+		{#if quickExercises && quickExercises.length > 0}
+			<section class="quick-section">
+				<p class="quick-label">Esercizi rapidi</p>
+				<div class="quick-grid">
+					{#each quickExercises as ex (ex.id)}
+						<button
+							class="quick-box"
+							class:active={selectedQuick.has(ex.id)}
+							onclick={() => toggleQuick(ex)}
+							aria-pressed={selectedQuick.has(ex.id)}
+						>
+							<span class="quick-icon" aria-hidden="true">{ex.icon}</span>
+							<span class="quick-label-text">{ex.name}</span>
+						</button>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
+		<!-- Spacer so content doesn't hide behind the fixed bar -->
+		<div class="action-spacer" aria-hidden="true"></div>
+	</div>
 </div>
 
 <!-- Fixed bottom action bar -->

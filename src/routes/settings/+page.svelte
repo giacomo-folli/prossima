@@ -43,7 +43,7 @@
 	<div class="profile-header">
 		<div class="avatar">M</div>
 		<div class="profile-info">
-			<p class="profile-name">{$user?.user_metadata.display_name}</p>
+			<p class="profile-name">{$user?.display_name}</p>
 			<p class="profile-email">{$user?.email}</p>
 		</div>
 		<i class="ti ti-chevron-right profile-chevron" aria-hidden="true"></i>

@@ -5,7 +5,9 @@ import {
 	deleteTrainingSession,
 	insertTrainingSession,
 	loadTrainingSessions,
+	updateTrainingSession,
 } from "../utils/storage";
+import { supabase } from "$lib/supabase";
 
 function createSessionsStore() {
 	const { subscribe, update, set } = writable<TrainingSession[]>([]);
@@ -33,6 +35,18 @@ function createSessionsStore() {
 				exercises,
 			};
 			update((sessions) => [session, ...sessions]);
+		},
+
+		async updateSession(
+			id: string,
+			patch: Partial<Omit<TrainingSession, "id" | "user_id">>,
+		) {
+			const updated = await updateTrainingSession(id, patch);
+			update((sessions) =>
+				sessions.map((s) =>
+					s.id === id ? { ...s, ...(updated ?? patch) } : s,
+				),
+			);
 		},
 
 		async deleteSession(id: string) {

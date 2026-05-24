@@ -1,12 +1,11 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import { sessions } from "$lib/stores/sessions";
 	import { DateTime } from "luxon";
 
-	// Example of deriving formatted data for the recent cards.
-	// In a real app, 'is_pr' or 'volume' would come from your backend data.
 	const recentSessions = $derived(
 		$sessions
-			.slice(0, 3) // Grab the latest few
+			.slice(0, 5)
 			.map((s) => ({
 				id: s.id,
 				title: s.exercises.map((e) => e.name).join(" - "),
@@ -27,7 +26,9 @@
 					<span class="session-meta"
 						>{session.exercisesCount || "-"} Exercises</span
 					>
-					<!-- <span class="session-meta">{session.title || "-"}</span> -->
+					<span class="session-meta">
+						<a href={resolve(`/training/${session.id}`)}> view details </a>
+					</span>
 				</div>
 			</div>
 		{/each}

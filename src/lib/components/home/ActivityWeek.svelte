@@ -5,6 +5,8 @@
 
 	const last7 = $derived(getLast7Days());
 	const activeDays = $derived(daysWithActivity($sessions, $exercises));
+
+	console.log(daysWithActivity($sessions, $exercises))
 </script>
 
 <section class="activity-week" aria-label="Attività ultimi 7 giorni">
