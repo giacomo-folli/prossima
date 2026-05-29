@@ -1,0 +1,5 @@
+name = "prossima-gemini-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-05-02"
+
+# No static files or site configurations are needed as this is a pure backend proxy.

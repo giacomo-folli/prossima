@@ -1,27 +1,19 @@
 /**
  * gemini.ts
- * Service layer for Google Gemini API communication via @google/genai.
+ * Service layer for Google Gemini API communication via a secure Cloudflare Worker proxy.
  *
- * Set VITE_GEMINI_API_KEY in your .env file.
- * ⚠️  For production, move calls to a SvelteKit server endpoint (+server.ts)
- *     so the API key is never exposed to the browser.
+ * Set VITE_GEMINI_WORKER_URL in your .env or .env.local file.
  */
 
-import { GoogleGenAI } from "@google/genai";
 import type { Exercise } from "$lib/types";
 
 // ── Client ────────────────────────────────────────────────────────────────────
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string;
+const workerUrl = import.meta.env.VITE_GEMINI_WORKER_URL as string;
 
-if (!apiKey) {
-	throw new Error("Missing VITE_GEMINI_API_KEY. Add it to your .env file.");
+if (!workerUrl) {
+	throw new Error("Missing VITE_GEMINI_WORKER_URL. Add it to your .env or .env.local file.");
 }
-
-const ai = new GoogleGenAI({ apiKey });
-
-/** Default model used across all calls unless overridden. */
-const DEFAULT_MODEL = "gemini-2.5-flash";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -51,16 +43,25 @@ export async function generateText(
 	prompt: string,
 	options: GenerateOptions = {},
 ): Promise<string> {
-	const response = await ai.models.generateContent({
-		model: options.model ?? DEFAULT_MODEL,
-		contents: prompt,
-		config: {
-			temperature: options.temperature ?? 0.7,
-			maxOutputTokens: options.maxOutputTokens ?? 1024,
+	const response = await fetch(`${workerUrl}/api/gemini`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
 		},
+		body: JSON.stringify({
+			prompt,
+			temperature: options.temperature,
+			maxOutputTokens: options.maxOutputTokens,
+		}),
 	});
 
-	return response.text ?? "";
+	if (!response.ok) {
+		const errData = await response.json().catch(() => ({}));
+		throw new Error(errData.error?.message || `HTTP ${response.status}: Failed to generate text`);
+	}
+
+	const data = await response.json() as { text: string };
+	return data.text;
 }
 
 /**
@@ -71,21 +72,25 @@ export async function chat(
 	messages: ChatMessage[],
 	options: GenerateOptions = {},
 ): Promise<string> {
-	const contents = messages.map((m) => ({
-		role: m.role,
-		parts: [{ text: m.content }],
-	}));
-
-	const response = await ai.models.generateContent({
-		model: options.model ?? DEFAULT_MODEL,
-		contents,
-		config: {
-			temperature: options.temperature ?? 0.7,
-			maxOutputTokens: options.maxOutputTokens ?? 2048,
+	const response = await fetch(`${workerUrl}/api/gemini`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
 		},
+		body: JSON.stringify({
+			history: messages,
+			temperature: options.temperature,
+			maxOutputTokens: options.maxOutputTokens,
+		}),
 	});
 
-	return response.text ?? "";
+	if (!response.ok) {
+		const errData = await response.json().catch(() => ({}));
+		throw new Error(errData.error?.message || `HTTP ${response.status}: Failed to generate chat response`);
+	}
+
+	const data = await response.json() as { text: string };
+	return data.text;
 }
 
 /**
@@ -99,18 +104,67 @@ export async function* streamText(
 	prompt: string,
 	options: GenerateOptions = {},
 ): AsyncGenerator<string> {
-	const stream = await ai.models.generateContentStream({
-		model: options.model ?? DEFAULT_MODEL,
-		contents: prompt,
-		config: {
-			temperature: options.temperature ?? 0.7,
-			maxOutputTokens: options.maxOutputTokens ?? 2048,
+	const response = await fetch(`${workerUrl}/api/gemini`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
 		},
+		body: JSON.stringify({
+			prompt,
+			stream: true,
+			temperature: options.temperature,
+			maxOutputTokens: options.maxOutputTokens,
+		}),
 	});
 
-	for await (const chunk of stream) {
-		const text = chunk.text;
-		if (text) yield text;
+	if (!response.ok) {
+		const errData = await response.json().catch(() => ({}));
+		throw new Error(errData.error?.message || `HTTP ${response.status}: Failed to stream text`);
+	}
+
+	const reader = response.body?.getReader();
+	if (!reader) {
+		throw new Error("Response body is not readable");
+	}
+
+	const decoder = new TextDecoder();
+	let buffer = "";
+
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+
+			buffer += decoder.decode(value, { stream: true });
+			const lines = buffer.split("\n");
+			
+			// Save the incomplete line back to the buffer
+			buffer = lines.pop() || "";
+
+			for (const line of lines) {
+				const trimmed = line.trim();
+				if (!trimmed) continue;
+
+				if (trimmed.startsWith("data: ")) {
+					const dataStr = trimmed.slice(6);
+					try {
+						const parsed = JSON.parse(dataStr);
+						if (parsed.error) {
+							throw new Error(parsed.error.message);
+						}
+						if (parsed.text) {
+							yield parsed.text;
+						}
+					} catch (e) {
+						if (e instanceof Error && e.message && !e.message.startsWith("Unexpected end")) {
+							throw e;
+						}
+					}
+				}
+			}
+		}
+	} finally {
+		reader.releaseLock();
 	}
 }
 
@@ -187,3 +241,4 @@ Give them one specific, actionable tip to improve their weekly routine.
 
 	return generateText(prompt, { temperature: 0.7, maxOutputTokens: 256 });
 }
+
