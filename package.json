@@ -28,6 +28,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@google/genai": "^2.6.0",
     "@supabase/supabase-js": "^2.106.0",
     "@sveltejs/adapter-static": "^3.0.10",
     "@types/luxon": "^3.7.1",
