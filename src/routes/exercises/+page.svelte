@@ -28,11 +28,16 @@
 					name = suggestion.name;
 				}
 			} else {
-				stepsError = "Impossibile generare gli step. Riprova.";
+				stepsError = "I server Gemini sono temporaneamente sovraccarichi. Attendi qualche istante e riprova.";
 			}
-		} catch (err) {
+		} catch (err: any) {
 			console.error("AI generation failed:", err);
-			stepsError = "Errore durante la generazione. Riprova.";
+			const msg = String(err).toLowerCase();
+			if (msg.includes("503") || msg.includes("unavailable") || msg.includes("demand") || msg.includes("busy")) {
+				stepsError = "I server di Google sono temporaneamente sovraccarichi. Riprova tra qualche istante.";
+			} else {
+				stepsError = "Errore durante la generazione. Verifica la tua connessione e riprova.";
+			}
 		} finally {
 			generating = false;
 		}

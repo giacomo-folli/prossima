@@ -28,6 +28,38 @@ function getCorsHeaders(request: Request): HeadersInit {
 	};
 }
 
+async function retryWithBackoff<T>(
+	fn: () => Promise<T>,
+	maxRetries = 3,
+	delayMs = 1000
+): Promise<T> {
+	let lastError: any;
+	for (let attempt = 1; attempt <= maxRetries; attempt++) {
+		try {
+			return await fn();
+		} catch (err: any) {
+			lastError = err;
+
+			const errStr = String(err).toLowerCase();
+			const isRetryable =
+				errStr.includes("503") ||
+				errStr.includes("429") ||
+				errStr.includes("busy") ||
+				errStr.includes("demand") ||
+				errStr.includes("temporarily") ||
+				errStr.includes("unavailable");
+
+			if (!isRetryable || attempt === maxRetries) {
+				throw err;
+			}
+
+			const backoffDelay = delayMs * Math.pow(2, attempt - 1);
+			await new Promise((resolve) => setTimeout(resolve, backoffDelay));
+		}
+	}
+	throw lastError;
+}
+
 export default {
 	async fetch(
 		request: Request,
@@ -197,11 +229,13 @@ export default {
 
 		// ── Standard Non-Streaming Path ───────────────────────────────────────────
 		try {
-			const response = await ai.models.generateContent({
-				model: "gemini-2.5-flash",
-				contents,
-				config,
-			});
+			const response = await retryWithBackoff(async () => {
+				return await ai.models.generateContent({
+					model: "gemini-2.0-flash-lite",
+					contents,
+					config,
+				});
+			}, 3, 3000);
 
 			return new Response(JSON.stringify({
 				text: response.text ?? ""
