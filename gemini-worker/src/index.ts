@@ -86,7 +86,7 @@ export default {
 			});
 		}
 
-		const { prompt, history, stream, temperature, maxOutputTokens } = body;
+		const { prompt, history, stream, temperature, maxOutputTokens, responseMimeType } = body;
 
 		// Parameter validation
 		if (typeof prompt !== "string" && !Array.isArray(history)) {
@@ -137,6 +137,7 @@ export default {
 		const config = {
 			temperature: typeof temperature === "number" ? temperature : 0.7,
 			maxOutputTokens: typeof maxOutputTokens === "number" ? maxOutputTokens : undefined,
+			responseMimeType: typeof responseMimeType === "string" ? responseMimeType : undefined,
 		};
 
 		// ── Streaming Path ────────────────────────────────────────────────────────

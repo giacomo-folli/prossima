@@ -1,12 +1,42 @@
 <script lang="ts">
 	import ExerciseCard from "$lib/components/ExerciseCard.svelte";
 	import { exerciseProgress, exercises } from "$lib/stores/exercises";
+	import { suggestExercise } from "$lib/gemini";
 
 	let showModal = false;
 	let name = "";
 	let stepsRaw = "";
 	let nameError = "";
 	let stepsError = "";
+	let generating = false;
+
+	async function generateStepsWithAI() {
+		if (!name.trim()) {
+			nameError = "Inserisci prima il nome dell'esercizio.";
+			return;
+		}
+
+		generating = true;
+		nameError = "";
+		stepsError = "";
+
+		try {
+			const suggestion = await suggestExercise(name.trim());
+			if (suggestion) {
+				stepsRaw = suggestion.steps.join("\n");
+				if (suggestion.name && name.toLowerCase().trim() !== suggestion.name.toLowerCase().trim()) {
+					name = suggestion.name;
+				}
+			} else {
+				stepsError = "Impossibile generare gli step. Riprova.";
+			}
+		} catch (err) {
+			console.error("AI generation failed:", err);
+			stepsError = "Errore durante la generazione. Riprova.";
+		} finally {
+			generating = false;
+		}
+	}
 
 	function openModal() {
 		showModal = true;
@@ -127,9 +157,24 @@
 				</div>
 
 				<div class="field">
-					<span class="ios-section-label">
-						Step <span class="label-hint">— uno per riga</span>
-					</span>
+					<div class="field-header-row">
+						<span class="ios-section-label">
+							Step <span class="label-hint">— uno per riga</span>
+						</span>
+						<button
+							type="button"
+							class="ai-gen-btn"
+							on:click={generateStepsWithAI}
+							disabled={generating || !name.trim()}
+							aria-label="Genera step con AI"
+						>
+							{#if generating}
+								<span class="spinner"></span> Generando...
+							{:else}
+								<i class="ti ti-sparkles"></i> Genera con AI
+							{/if}
+						</button>
+					</div>
 					<textarea
 						id="ex-steps"
 						bind:value={stepsRaw}
@@ -307,6 +352,60 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.4rem;
+	}
+
+	.field-header-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.ai-gen-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		background: var(--color-accent-dim);
+		color: var(--color-accent);
+		border: none;
+		border-radius: var(--radius-card);
+		padding: 0.25rem 0.6rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		cursor: pointer;
+		font-family: inherit;
+		transition:
+			opacity 0.15s ease,
+			transform 0.12s ease;
+	}
+
+	.ai-gen-btn:hover:not(:disabled) {
+		opacity: 0.9;
+		transform: scale(1.03);
+	}
+
+	.ai-gen-btn:active:not(:disabled) {
+		transform: scale(0.97);
+	}
+
+	.ai-gen-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.spinner {
+		width: 10px;
+		height: 10px;
+		border: 1.5px solid var(--color-accent);
+		border-top-color: transparent;
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	/* reuse global .ios-section-label, just remove its bottom margin here */

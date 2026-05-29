@@ -10,9 +10,10 @@ import type { Exercise } from "$lib/types";
 // ── Client ────────────────────────────────────────────────────────────────────
 
 const workerUrl = import.meta.env.VITE_GEMINI_WORKER_URL as string;
-
 if (!workerUrl) {
-	throw new Error("Missing VITE_GEMINI_WORKER_URL. Add it to your .env or .env.local file.");
+	throw new Error(
+		"Missing VITE_GEMINI_WORKER_URL. Add it to your .env or .env.local file.",
+	);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -26,6 +27,7 @@ export interface GenerateOptions {
 	model?: string;
 	temperature?: number;
 	maxOutputTokens?: number;
+	responseMimeType?: string;
 }
 
 export interface ExerciseSuggestion {
@@ -52,15 +54,19 @@ export async function generateText(
 			prompt,
 			temperature: options.temperature,
 			maxOutputTokens: options.maxOutputTokens,
+			responseMimeType: options.responseMimeType,
 		}),
 	});
 
 	if (!response.ok) {
 		const errData = await response.json().catch(() => ({}));
-		throw new Error(errData.error?.message || `HTTP ${response.status}: Failed to generate text`);
+		throw new Error(
+			errData.error?.message ||
+				`HTTP ${response.status}: Failed to generate text`,
+		);
 	}
 
-	const data = await response.json() as { text: string };
+	const data = (await response.json()) as { text: string };
 	return data.text;
 }
 
@@ -81,15 +87,19 @@ export async function chat(
 			history: messages,
 			temperature: options.temperature,
 			maxOutputTokens: options.maxOutputTokens,
+			responseMimeType: options.responseMimeType,
 		}),
 	});
 
 	if (!response.ok) {
 		const errData = await response.json().catch(() => ({}));
-		throw new Error(errData.error?.message || `HTTP ${response.status}: Failed to generate chat response`);
+		throw new Error(
+			errData.error?.message ||
+				`HTTP ${response.status}: Failed to generate chat response`,
+		);
 	}
 
-	const data = await response.json() as { text: string };
+	const data = (await response.json()) as { text: string };
 	return data.text;
 }
 
@@ -119,7 +129,10 @@ export async function* streamText(
 
 	if (!response.ok) {
 		const errData = await response.json().catch(() => ({}));
-		throw new Error(errData.error?.message || `HTTP ${response.status}: Failed to stream text`);
+		throw new Error(
+			errData.error?.message ||
+				`HTTP ${response.status}: Failed to stream text`,
+		);
 	}
 
 	const reader = response.body?.getReader();
@@ -137,7 +150,7 @@ export async function* streamText(
 
 			buffer += decoder.decode(value, { stream: true });
 			const lines = buffer.split("\n");
-			
+
 			// Save the incomplete line back to the buffer
 			buffer = lines.pop() || "";
 
@@ -156,7 +169,11 @@ export async function* streamText(
 							yield parsed.text;
 						}
 					} catch (e) {
-						if (e instanceof Error && e.message && !e.message.startsWith("Unexpected end")) {
+						if (
+							e instanceof Error &&
+							e.message &&
+							!e.message.startsWith("Unexpected end")
+						) {
 							throw e;
 						}
 					}
@@ -178,24 +195,36 @@ export async function suggestExercise(
 	userPrompt: string,
 ): Promise<ExerciseSuggestion | null> {
 	const systemPrompt = `
-You are a personal fitness coach. The user will describe a fitness goal or exercise idea.
-Respond ONLY with a valid JSON object — no markdown, no code fences, no extra text.
-Schema:
+You are an expert personal trainer. Design a progressive overload workout plan for the given exercise or fitness goal.
+Return ONLY a JSON object matching this schema:
 {
-  "name": "short exercise name",
-  "steps": ["step 1 description", "step 2 description", ...],
-  "rationale": "one sentence explaining why this plan suits the user"
+  "name": "Refined exercise name",
+  "steps": ["Step 1", "Step 2", ...],
+  "rationale": "One-sentence coaching rationale"
 }
-Steps should be 3–7 concrete, actionable instructions.
+Requirements:
+1. Generate between 3 to 6 steps.
+2. Steps must represent a progression timeline. The first step is the baseline, and each subsequent step must slightly increase the difficulty (e.g. adding weight, reps, sets, or duration) without being too easy or too hard.
+3. Keep steps extremely concise and measurable. Use this exact format:
+   - "3 sets of 10 reps (40 kg)"
+   - "3 sets of 12 reps (40 kg)"
+   - "3 sets of 10 reps (44 kg)"
+   - Or "3 sets of 1 min (Hold plank)"
 `.trim();
 
 	try {
 		const raw = await generateText(`${systemPrompt}\n\nUser: ${userPrompt}`, {
 			temperature: 0.5,
-			maxOutputTokens: 512,
+			maxOutputTokens: 1024,
+			responseMimeType: "application/json",
 		});
 
-		return JSON.parse(raw.trim()) as ExerciseSuggestion;
+		let cleanRaw = raw.trim();
+		if (cleanRaw.startsWith("```")) {
+			cleanRaw = cleanRaw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+		}
+
+		return JSON.parse(cleanRaw) as ExerciseSuggestion;
 	} catch (err) {
 		console.error("gemini.suggestExercise: failed to parse response", err);
 		return null;
@@ -241,4 +270,3 @@ Give them one specific, actionable tip to improve their weekly routine.
 
 	return generateText(prompt, { temperature: 0.7, maxOutputTokens: 256 });
 }
-
