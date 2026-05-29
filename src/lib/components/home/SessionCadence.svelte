@@ -2,6 +2,7 @@
 	import { resolve } from "$app/paths";
 	import { sessions } from "$lib/stores/sessions";
 	import { DateTime } from "luxon";
+	import Icon from "../Icon.svelte";
 
 	const recentSessions = $derived(
 		$sessions
@@ -16,21 +17,21 @@
 </script>
 
 <section class="recent-section">
-	<p class="ios-section-label">Recent</p>
+	<p class="ios-section-label">Recenti</p>
 
 	<div class="session-list">
 		{#each recentSessions as session (session.id)}
-			<div class="session-card">
+			<a href={resolve("/training/[id]", { id: session.id ?? "" })} class="session-card ios-card ios-card--tappable">
 				<div class="card-left">
 					<h3 class="session-name">{session.date}</h3>
-					<span class="session-meta"
-						>{session.exercisesCount || "-"} Exercises</span
-					>
 					<span class="session-meta">
-						<a href={resolve(`/training/${session.id}`)}> view details </a>
+						{session.exercisesCount || "-"} Esercizi
 					</span>
 				</div>
-			</div>
+				<div class="card-right">
+					<Icon name="chevron-right" size={20} class="chevron" />
+				</div>
+			</a>
 		{/each}
 	</div>
 </section>
@@ -38,39 +39,56 @@
 <style>
 	.recent-section {
 		margin-bottom: 2rem;
+		padding: 0 1rem;
+	}
+
+	.ios-section-label {
+		display: block;
+		margin: 0 0 12px;
+		font-size: 13px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.8px;
+		color: var(--color-muted);
 	}
 
 	.session-list {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem; /* Space between cards */
+		gap: 0.75rem;
 	}
 
 	.session-card {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		background-color: #f8fafc; /* Very light gray/slate */
-		border: 1px solid #e2e8f0;
-		border-radius: 1.5rem; /* Large border radius for the pill shape */
-		padding: 1.25rem 1.5rem;
+		padding: 16px;
+		text-decoration: none;
 	}
 
 	.card-left {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 4px;
 	}
 
 	.session-name {
 		margin: 0;
-		font-size: 1rem;
+		font-size: 17px;
 		font-weight: 600;
-		color: #0f172a;
+		color: var(--color-text);
 	}
 
 	.session-meta {
-		font-size: 0.875rem;
-		color: #64748b;
+		font-size: 13px;
+		font-weight: 500;
+		color: var(--color-accent);
+	}
+
+	.card-right {
+		display: flex;
+		align-items: center;
+		color: var(--color-muted);
+		opacity: 0.6;
 	}
 </style>

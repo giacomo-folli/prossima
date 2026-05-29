@@ -7,6 +7,7 @@
 	import type { Exercise } from "$lib/types";
 	import posthog from "posthog-js";
 	import { resolve } from "$app/paths";
+	import Icon from "$lib/components/Icon.svelte";
 
 	const id = $state(page.params.id);
 
@@ -96,6 +97,12 @@
 
 {#if exercise}
 	<div class="page-layout">
+		<div class="top-bar">
+			<a href={resolve("/exercises")} class="nav-back" aria-label="Indietro">
+				<Icon name="chevron-left" size={28} />
+			</a>
+		</div>
+
 		<header class="ex-header">
 			<div class="title-row">
 				<h1>{exercise.name}</h1>
@@ -105,7 +112,7 @@
 					aria-label="Elimina esercizio"
 					title="Elimina esercizio"
 				>
-					<i class="ti ti-trash"></i>
+					<Icon name="trash" size={18} />
 				</button>
 			</div>
 			<div class="progress-row">
@@ -113,38 +120,38 @@
 				<span class="pct-label">{pct}%</span>
 			</div>
 			<p class="step-count">
-				{completedCount} of {total} steps completed
+				{completedCount} di {total} step completati
 			</p>
 		</header>
 
 		{#if !isComplete}
 			<section class="current-section">
-				<p class="section-label">Current step</p>
-				<div class="current-step-box">
+				<p class="section-label">Step attuale</p>
+				<div class="current-step-box ios-card">
 					<p class="current-step-label">
 						{currentStep?.description ?? "—"}
 					</p>
 					<button class="btn btn--primary btn-complete" onclick={completeStep}>
-						Mark complete
+						Segna completato
 					</button>
 				</div>
 			</section>
 		{:else}
 			<section class="current-section">
-				<div class="complete-banner">All steps completed ✓</div>
+				<div class="complete-banner">✓ Tutti gli step completati</div>
 			</section>
 		{/if}
 
 		<section class="steps-section-wrapper">
 			<div class="steps-header">
-				<p class="section-label">All steps</p>
+				<p class="section-label">Tutti gli step</p>
 				{#if hasCompleted}
-					<button class="btn btn--secondary btn-undo" onclick={undoStep}>
-						Undo last
+					<button class="btn-undo" onclick={undoStep}>
+						Annulla ultimo
 					</button>
 				{/if}
 			</div>
-			<div class="steps-section-card">
+			<div class="steps-section-card ios-card">
 				{#if exercise.steps && exercise.current_step_index !== undefined}
 					<StepList
 						steps={exercise.steps}
@@ -177,7 +184,7 @@
 
 			<div class="confirm-body">
 				<div class="confirm-icon">
-					<i class="ti ti-trash"></i>
+					<Icon name="trash" size={24} />
 				</div>
 				<h2 id="confirm-title">Elimina esercizio</h2>
 				<p class="confirm-desc">
@@ -208,14 +215,37 @@
 	.page-layout {
 		display: flex;
 		flex-direction: column;
-		gap: 2rem;
+		gap: 1.5rem;
 		max-width: 600px;
 		width: 100%;
 		margin: 0 auto;
 		padding-bottom: 2rem;
 	}
 
+	/* ── Top bar & Back nav ── */
+	.top-bar {
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		padding: 0 1rem;
+	}
+
+	.nav-back {
+		display: inline-flex;
+		align-items: center;
+		color: var(--color-accent);
+		transition: opacity 150ms ease;
+	}
+
+	.nav-back:active {
+		opacity: 0.6;
+	}
+
 	/* ── Header ── */
+	.ex-header {
+		padding: 0 1rem;
+	}
+
 	.title-row {
 		display: flex;
 		align-items: center;
@@ -226,7 +256,7 @@
 
 	.ex-header h1 {
 		margin: 0;
-		font-size: 1.4rem;
+		font-size: 24px;
 		font-weight: 700;
 		letter-spacing: -0.03em;
 		color: var(--color-text);
@@ -237,22 +267,26 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.1rem;
-		height: 2.1rem;
+		width: 36px;
+		height: 36px;
 		border-radius: 50%;
-		background: transparent;
-		color: var(--color-danger);
-		font-size: 1.05rem;
+		background: #FEE2E2;
+		color: #EF4444;
 		padding: 0;
 		flex-shrink: 0;
 		transition:
-			background 0.15s ease,
-			color 0.15s ease;
-		background: rgba(255, 59, 48, 0.1);
+			opacity 150ms ease,
+			transform 150ms ease;
+	}
+
+	:global(html.dark) .delete-btn {
+		background: rgba(255, 69, 58, 0.2);
+		color: #ff453a;
 	}
 
 	.delete-btn:active {
-		background: rgba(255, 59, 48, 0.18);
+		opacity: 0.8;
+		transform: scale(0.96);
 	}
 
 	.progress-row {
@@ -263,6 +297,12 @@
 
 	.progress-row :global(.progress-track) {
 		flex: 1;
+		height: 6px;
+		border-radius: 3px;
+	}
+
+	.progress-row :global(.progress-fill) {
+		border-radius: 3px;
 	}
 
 	.pct-label {
@@ -273,69 +313,84 @@
 	}
 
 	.step-count {
-		margin: 0.5rem 0 0;
-		font-size: 0.85rem;
+		margin: 6px 0 0;
+		font-size: 13px;
 		color: var(--color-muted);
 	}
 
+	/* ── Section Label ── */
 	.section-label {
-		margin: 0 0 0.75rem;
-		font-size: 0.75rem;
+		margin: 0 0 10px;
+		font-size: 13px;
 		font-weight: 600;
-		letter-spacing: 0.1em;
 		text-transform: uppercase;
+		letter-spacing: 0.8px;
 		color: var(--color-muted);
+	}
+
+	/* ── Current Section ── */
+	.current-section {
+		padding: 0 1rem;
 	}
 
 	.current-step-box {
-		background: var(--color-card, #1c1c1e);
-		border: 1px solid var(--color-border, #2c2c2e);
-		border-radius: 12px;
-		padding: 1.25rem 1.5rem;
+		background: var(--color-card);
+		border: 1px solid var(--color-border);
+		border-radius: 16px;
+		padding: 20px;
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0;
 	}
 
 	.current-step-label {
-		margin: 0;
-		font-size: 1rem;
-		font-weight: 600;
+		margin: 0 0 16px;
+		font-size: 17px;
+		font-weight: 700;
 		color: var(--color-text);
+		line-height: 1.4;
+		text-align: left;
 	}
 
 	.btn-complete {
-		padding: 0.75rem 1.25rem;
-		font-size: 0.9rem;
+		width: 100%;
+		height: 52px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 16px;
 		font-weight: 600;
-		border-radius: 8px;
-		background-color: var(--color-accent, #2c974b);
-		color: white;
+		border-radius: 14px;
+		background-color: var(--color-accent);
+		color: #ffffff;
 		border: none;
 		cursor: pointer;
-		transition: opacity 0.2s;
+		transition: opacity 150ms ease, transform 150ms ease;
 		white-space: nowrap;
 	}
 
-	.btn-complete:hover {
+	.btn-complete:active {
 		opacity: 0.9;
+		transform: scale(0.985);
 	}
 
 	.complete-banner {
-		background: rgba(44, 151, 75, 0.15);
-		color: var(--color-accent, #2c974b);
-		border-radius: 12px;
+		background: rgba(44, 151, 75, 0.12);
+		color: var(--color-accent);
+		border-radius: 16px;
 		padding: 1rem 1.5rem;
-		font-size: 1rem;
+		font-size: 16px;
 		font-weight: 600;
 		text-align: center;
-		border: 1px solid rgba(44, 151, 75, 0.3);
+		border: 1px solid rgba(44, 151, 75, 0.2);
 	}
 
+	/* ── Steps Section ── */
 	.steps-section-wrapper {
 		display: flex;
 		flex-direction: column;
+		padding: 0 1rem;
 	}
 
 	.steps-header {
@@ -350,34 +405,29 @@
 	}
 
 	.steps-section-card {
-		background: var(--color-card, #1c1c1e);
-		border: 1px solid var(--color-border, #2c2c2e);
-		border-radius: 12px;
-		padding: 1rem 1.25rem;
+		padding: 0 1rem;
 	}
 
 	.btn-undo {
-		background: rgba(255, 255, 255, 0.05);
-		border: 1px solid var(--color-border, #2c2c2e);
-		border-radius: 6px;
-		padding: 0.4rem 0.8rem;
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--color-text);
+		background: none;
+		border: none;
+		padding: 0;
+		font-size: 15px;
+		font-weight: 600;
+		color: var(--color-accent);
 		cursor: pointer;
-		transition: all 0.15s ease;
+		transition: opacity 150ms ease;
 	}
 
-	.btn-undo:hover {
-		background: rgba(255, 255, 255, 0.1);
-		border-color: rgba(255, 255, 255, 0.2);
+	.btn-undo:active {
+		opacity: 0.6;
 	}
 
 	/* ── Confirm sheet ── */
 	.confirm-backdrop {
 		position: fixed;
 		inset: 0;
-		background: rgba(0, 0, 0, 0.4);
+		background: var(--color-overlay);
 		display: flex;
 		align-items: flex-end;
 		justify-content: center;
@@ -397,7 +447,7 @@
 		max-width: 480px;
 		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 		padding: 0;
-		box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.14);
+		box-shadow: var(--shadow-elevated);
 		animation: slide-up 0.24s cubic-bezier(0.32, 1.2, 0.6, 1);
 		overflow: hidden;
 	}
@@ -405,7 +455,6 @@
 	@media (min-width: 520px) {
 		.confirm-sheet {
 			border-radius: var(--radius-lg);
-			box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
 			animation: pop-in 0.22s cubic-bezier(0.32, 1.2, 0.6, 1);
 		}
 	}
@@ -476,20 +525,6 @@
 		border-radius: var(--radius-card);
 		padding: 0.8rem;
 		font-size: 0.95rem;
-	}
-
-	/* ── Animations ── */
-	@media (max-width: 480px) {
-		.current-step-box {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 1.25rem;
-		}
-
-		.btn-complete {
-			width: 100%;
-			text-align: center;
-		}
 	}
 
 	@keyframes fade-in {

@@ -1,10 +1,10 @@
-<!-- src/routes/training/[id]/+page.svelte -->
 <script lang="ts">
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import { sessions } from "$lib/stores/sessions";
 	import posthog from "posthog-js";
+	import Icon from "$lib/components/Icon.svelte";
 
 	type SessionExercise = {
 		id: string;
@@ -154,7 +154,7 @@
 			</button>
 		{:else}
 			<a href={resolve("/home")} class="nav-back">
-				<i class="ti ti-chevron-left" aria-hidden="true"></i>
+				<Icon name="chevron-left" size={24} />
 				Home
 			</a>
 			{#if session}
@@ -163,7 +163,7 @@
 					onclick={enterEdit}
 					aria-label="Modifica sessione"
 				>
-					<i class="ti ti-pencil" aria-hidden="true"></i>
+					<Icon name="pencil" size={16} />
 					Modifica
 				</button>
 			{/if}
@@ -172,7 +172,7 @@
 
 	{#if !session}
 		<div class="empty-state ios-card">
-			<i class="ti ti-mood-puzzled empty-icon" aria-hidden="true"></i>
+			<Icon name="mood-puzzled" size={48} class="empty-icon" />
 			<p>Sessione non trovata.</p>
 		</div>
 	{:else if editing}
@@ -183,7 +183,7 @@
 		<!-- Date / time editors -->
 		<div class="edit-section ios-card">
 			<p class="edit-section-title">
-				<i class="ti ti-calendar" aria-hidden="true"></i>
+				<Icon name="calendar" size={16} />
 				Data e ora
 			</p>
 			<div class="datetime-row">
@@ -211,7 +211,7 @@
 		<!-- Note editor -->
 		<div class="edit-section ios-card">
 			<p class="edit-section-title">
-				<i class="ti ti-notes" aria-hidden="true"></i>
+				<Icon name="notes" size={16} />
 				Note
 			</p>
 			<textarea
@@ -226,7 +226,7 @@
 		{#if editProgram.length > 0}
 			<div class="edit-section ios-card">
 				<p class="edit-section-title">
-					<i class="ti ti-barbell" aria-hidden="true"></i>
+					<Icon name="dumbbell" size={16} />
 					Programma
 					<span class="edit-section-count">{editProgram.length}</span>
 				</p>
@@ -234,7 +234,7 @@
 					{#each editProgram as ex (ex.id)}
 						<li class="edit-item">
 							<div class="ex-bullet">
-								<i class="ti ti-barbell" aria-hidden="true"></i>
+								<Icon name="dumbbell" size={14} />
 							</div>
 							<div class="ex-body">
 								<span class="ex-name-plain">{ex.name}</span>
@@ -247,7 +247,7 @@
 								onclick={() => removeExercise(ex.id)}
 								aria-label="Rimuovi {ex.name}"
 							>
-								<i class="ti ti-circle-minus" aria-hidden="true"></i>
+								<Icon name="circle-minus" size={20} />
 							</button>
 						</li>
 					{/each}
@@ -259,7 +259,7 @@
 		{#if editQuick.length > 0}
 			<div class="edit-section ios-card">
 				<p class="edit-section-title">
-					<i class="ti ti-bolt" aria-hidden="true"></i>
+					<Icon name="bolt" size={16} />
 					Esercizi rapidi
 					<span class="edit-section-count">{editQuick.length}</span>
 				</p>
@@ -275,7 +275,7 @@
 								onclick={() => removeExercise(ex.id)}
 								aria-label="Rimuovi {ex.name}"
 							>
-								<i class="ti ti-circle-minus" aria-hidden="true"></i>
+								<Icon name="circle-minus" size={20} />
 							</button>
 						</li>
 					{/each}
@@ -304,7 +304,7 @@
 		<!-- Header -->
 		<header class="session-header">
 			<div class="header-badge">
-				<i class="ti ti-barbell" aria-hidden="true"></i>
+				<Icon name="dumbbell" size={24} />
 			</div>
 			<div class="header-text">
 				<h1 class="session-title">Sessione</h1>
@@ -321,7 +321,7 @@
 		<!-- Note (read-only) -->
 		{#if existingNote}
 			<div class="note-card ios-card">
-				<i class="ti ti-notes note-icon" aria-hidden="true"></i>
+				<Icon name="notes" size={16} class="note-icon" />
 				<p class="note-text">{existingNote}</p>
 			</div>
 		{/if}
@@ -329,19 +329,19 @@
 		<!-- Summary cards -->
 		<div class="summary-row">
 			<div class="summary-card ios-card">
-				<i class="ti ti-list-check card-icon" aria-hidden="true"></i>
+				<Icon name="list-check" size={20} class="card-icon" />
 				<span class="summary-value">{programExercises.length}</span>
 				<span class="summary-label">Esercizi</span>
 			</div>
 
 			<div class="summary-card ios-card">
-				<i class="ti ti-bolt card-icon" aria-hidden="true"></i>
+				<Icon name="bolt" size={20} class="card-icon" />
 				<span class="summary-value">{quickExercises.length}</span>
 				<span class="summary-label">Rapidi</span>
 			</div>
 
 			<div class="summary-card ios-card">
-				<i class="ti ti-stack card-icon" aria-hidden="true"></i>
+				<Icon name="stack" size={20} class="card-icon" />
 				<span class="summary-value">{exercises.length}</span>
 				<span class="summary-label">Totale</span>
 			</div>
@@ -355,7 +355,7 @@
 					{#each programExercises as ex, i (ex.id ?? i)}
 						<li class="ex-item">
 							<div class="ex-bullet">
-								<i class="ti ti-barbell" aria-hidden="true"></i>
+								<Icon name="dumbbell" size={16} />
 							</div>
 							<div class="ex-body">
 								<a
@@ -368,7 +368,7 @@
 									<span class="ex-step">{ex.step_label}</span>
 								{/if}
 							</div>
-							<i class="ti ti-chevron-right ex-chevron" aria-hidden="true"></i>
+							<Icon name="chevron-right" size={16} class="ex-chevron" />
 						</li>
 					{/each}
 				</ul>
@@ -385,8 +385,7 @@
 							{#if ex.icon}
 								<span class="quick-icon" aria-hidden="true">{ex.icon}</span>
 							{:else}
-								<i class="ti ti-bolt quick-icon-fallback" aria-hidden="true"
-								></i>
+								<Icon name="bolt" size={16} class="quick-icon-fallback" />
 							{/if}
 							<span class="quick-name">{ex.name}</span>
 						</div>
@@ -405,7 +404,7 @@
 				goto(resolve("/home"));
 			}}
 		>
-			<i class="ti ti-trash" aria-hidden="true"></i>
+			<Icon name="trash" size={18} />
 			Elimina sessione
 		</button>
 	{/if}

@@ -1,10 +1,10 @@
-<!-- src/routes/settings/+page.svelte -->
 <script lang="ts">
 	import { exercises } from "$lib/stores/exercises";
 	import { sessions } from "$lib/stores/sessions";
 	import { user } from "$lib/stores/user";
 	import { supabase } from "$lib/supabase";
 	import posthog from "posthog-js";
+	import Icon from "$lib/components/Icon.svelte";
 
 	let loading = $state(false);
 
@@ -49,7 +49,7 @@
 			<p class="profile-name">{$user?.display_name}</p>
 			<p class="profile-email">{$user?.email}</p>
 		</div>
-		<i class="ti ti-chevron-right profile-chevron" aria-hidden="true"></i>
+		<Icon name="chevron-right" size={16} class="profile-chevron" />
 	</div>
 
 	<!-- Aspetto -->
@@ -57,19 +57,19 @@
 	<div class="group">
 		<div class="row row--tappable">
 			<span class="row-icon" style="background: #8e8e93">
-				<i class="ti ti-moon" aria-hidden="true"></i>
+				<Icon name="moon" size={16} />
 			</span>
 			<span class="row-label">Tema</span>
 			<span class="row-value">Automatico</span>
-			<i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+			<Icon name="chevron-right" size={14} class="chevron" />
 		</div>
 		<div class="row row--tappable">
 			<span class="row-icon" style="background: #32ade6">
-				<i class="ti ti-language" aria-hidden="true"></i>
+				<Icon name="language" size={16} />
 			</span>
 			<span class="row-label">Lingua</span>
 			<span class="row-value">Italiano</span>
-			<i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+			<Icon name="chevron-right" size={14} class="chevron" />
 		</div>
 	</div>
 
@@ -78,21 +78,21 @@
 	<div class="group">
 		<div class="row row--tappable">
 			<span class="row-icon" style="background: #007aff">
-				<i class="ti ti-help" aria-hidden="true"></i>
+				<Icon name="help" size={16} />
 			</span>
 			<span class="row-label">Guida &amp; FAQ</span>
-			<i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+			<Icon name="chevron-right" size={14} class="chevron" />
 		</div>
 		<div class="row row--tappable">
 			<span class="row-icon" style="background: #5856d6">
-				<i class="ti ti-message" aria-hidden="true"></i>
+				<Icon name="message" size={16} />
 			</span>
 			<span class="row-label">Contatta il supporto</span>
-			<i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+			<Icon name="chevron-right" size={14} class="chevron" />
 		</div>
 		<div class="row">
 			<span class="row-icon" style="background: #8e8e93">
-				<i class="ti ti-info-circle" aria-hidden="true"></i>
+				<Icon name="info" size={16} />
 			</span>
 			<span class="row-label">Versione app</span>
 			<span class="row-value">0.0.1</span>
@@ -101,17 +101,17 @@
 
 	<!-- Zona pericolosa -->
 	<p class="section-label">Zona pericolosa</p>
-	<div class="group">
+	<div class="group group--danger">
 		<button
 			class="row row--tappable"
 			onclick={handleResetProgress}
 			disabled={loading}
 		>
 			<span class="row-icon" style="background: #ff9500">
-				<i class="ti ti-refresh" aria-hidden="true"></i>
+				<Icon name="refresh" size={16} />
 			</span>
 			<span class="row-label">Resetta i progressi</span>
-			<i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+			<Icon name="chevron-right" size={14} class="chevron" />
 		</button>
 		<button
 			class="row row--tappable row--destructive"
@@ -119,10 +119,10 @@
 			disabled={loading}
 		>
 			<span class="row-icon" style="background: var(--color-danger)">
-				<i class="ti ti-trash" aria-hidden="true"></i>
+				<Icon name="trash" size={16} />
 			</span>
 			<span class="row-label">Elimina storico allenamenti</span>
-			<i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+			<Icon name="chevron-right" size={14} class="chevron" />
 		</button>
 		<button
 			class="row row--tappable row--destructive"
@@ -130,7 +130,7 @@
 			disabled={loading}
 		>
 			<span class="row-icon" style="background: var(--color-danger)">
-				<i class="ti ti-logout" aria-hidden="true"></i>
+				<Icon name="logout" size={16} />
 			</span>
 			<span class="row-label">Logout</span>
 		</button>
@@ -142,27 +142,28 @@
 	.settings-page {
 		display: flex;
 		flex-direction: column;
-		padding-bottom: calc(var(--tab-bar-height) + 1rem);
+		padding: 0 1rem calc(var(--tab-bar-height) + 1rem);
 	}
 
-	/* Profile header — uses card token for surface */
+	/* Profile header */
 	.profile-header {
 		display: flex;
 		align-items: center;
 		gap: 14px;
-		padding: 1.25rem var(--page-padding) 1rem;
+		padding: 1.25rem 0 1rem;
 		cursor: pointer;
+		min-height: 56px;
 	}
 
 	.avatar {
-		width: 58px;
-		height: 58px;
+		width: 48px;
+		height: 48px;
 		border-radius: 50%;
 		background: var(--color-accent);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 21px;
+		font-size: 18px;
 		font-weight: 700;
 		color: #fff;
 		flex-shrink: 0;
@@ -175,41 +176,51 @@
 
 	.profile-name {
 		margin: 0;
-		font-size: 1rem;
-		font-weight: 700;
+		font-size: 17px;
+		font-weight: 600;
 		color: var(--color-text);
 		letter-spacing: -0.02em;
 	}
 
 	.profile-email {
 		margin: 2px 0 0;
-		font-size: 0.8rem;
+		font-size: 13px;
 		color: var(--color-muted);
 	}
 
-	.profile-chevron {
-		font-size: 14px;
+	:global(.profile-chevron) {
 		color: var(--color-muted);
+		opacity: 0.5;
 	}
 
-	/* Section label — matches .ios-section-label from global */
+	/* Section label */
 	.section-label {
 		display: block;
-		margin: 1.25rem var(--page-padding) 0.4rem;
-		font-size: 0.7rem;
+		margin: 1.25rem 0 0.4rem;
+		font-size: 13px;
 		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.1em;
+		letter-spacing: 0.8px;
 		color: var(--color-muted);
 	}
 
-	/* Group — same surface as .card */
+	/* Group */
 	.group {
 		background: var(--color-card);
 		border-radius: var(--radius-card);
-		margin: 0 var(--page-padding);
 		overflow: hidden;
 		box-shadow: var(--shadow-card);
+		border: 1px solid var(--color-border);
+	}
+
+	.group--danger {
+		background: #FEE2E2;
+		border: 1px solid rgba(239, 68, 68, 0.25);
+	}
+
+	:global(html.dark) .group--danger {
+		background: rgba(255, 69, 58, 0.15);
+		border-color: rgba(255, 69, 58, 0.25);
 	}
 
 	/* Row */
@@ -218,9 +229,8 @@
 		align-items: center;
 		gap: 12px;
 		padding: 0 14px;
-		min-height: 46px;
+		min-height: 52px;
 		position: relative;
-		/* reset button defaults */
 		background: none;
 		border: none;
 		border-radius: 0;
@@ -232,7 +242,7 @@
 		transition: background 0.1s ease;
 	}
 
-	/* Separator — starts after the icon column */
+	/* Separator */
 	.row:not(:last-child)::after {
 		content: "";
 		position: absolute;
@@ -243,12 +253,24 @@
 		background: var(--color-border);
 	}
 
+	.group--danger .row:not(:last-child)::after {
+		background: rgba(239, 68, 68, 0.2);
+	}
+
 	.row--tappable {
 		cursor: pointer;
 	}
 
 	.row--tappable:active:not(:disabled) {
 		background: var(--color-track);
+	}
+
+	.group--danger .row--tappable:active:not(:disabled) {
+		background: rgba(239, 68, 68, 0.1);
+	}
+
+	:global(html.dark) .group--danger .row--tappable:active:not(:disabled) {
+		background: rgba(255, 69, 58, 0.1);
 	}
 
 	.row:disabled {
@@ -268,27 +290,33 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 15px;
 		color: #fff;
 		flex-shrink: 0;
 	}
 
-	/* Row text — reuse app's existing font scale */
+	/* Row text */
 	.row-label {
 		flex: 1;
-		font-size: 0.9rem;
-		font-weight: 600;
+		font-size: 15px;
+		font-weight: 500;
 		color: var(--color-text);
 	}
 
+	.group--danger .row-label {
+		color: #EF4444;
+	}
+
+	:global(html.dark) .group--danger .row-label {
+		color: #ff453a;
+	}
+
 	.row-value {
-		font-size: 0.85rem;
+		font-size: 13px;
 		color: var(--color-muted);
 		margin-right: 2px;
 	}
 
-	.chevron {
-		font-size: 12px;
+	:global(.chevron) {
 		color: var(--color-muted);
 		opacity: 0.45;
 		margin-right: -2px;

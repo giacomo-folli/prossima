@@ -1,7 +1,7 @@
-<!-- src/routes/auth/+page.svelte -->
 <script lang="ts">
 	import { supabase } from "$lib/supabase";
 	import posthog from "posthog-js";
+	import Icon from "$lib/components/Icon.svelte";
 
 	let email = $state("");
 	let name = $state("");
@@ -62,7 +62,7 @@
 	<div class="wrapper">
 		<div class="brand">
 			<div class="brand-icon">
-				<i class="ti ti-barbell" aria-hidden="true"></i>
+				<Icon name="dumbbell" size={26} />
 			</div>
 			<h1 class="brand-name">Prossima</h1>
 			<p class="brand-sub">Il tuo allenamento, ogni giorno</p>
@@ -96,10 +96,7 @@
 						onclick={() => (showPassword = !showPassword)}
 						aria-label="Mostra/nascondi password"
 					>
-						<i
-							class={showPassword ? "ti ti-eye-off" : "ti ti-eye"}
-							aria-hidden="true"
-						></i>
+						<Icon name={showPassword ? "eye-off" : "eye"} size={18} />
 					</button>
 				</div>
 			</div>
@@ -249,7 +246,7 @@
 		font-weight: 500;
 		color: var(--color-text);
 		background: var(--color-card);
-		border: 1.5px solid var(--color-border);
+		border: 1px solid var(--color-border);
 		border-radius: 12px;
 		padding: 0.8rem 0.9rem;
 		width: 100%;

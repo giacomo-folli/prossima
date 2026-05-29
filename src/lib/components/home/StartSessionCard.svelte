@@ -2,6 +2,7 @@
 	import { resolve } from "$app/paths";
 	import { sessions } from "$lib/stores/sessions";
 	import { DateTime } from "luxon";
+	import Icon from "../Icon.svelte";
 
 	const todayEexercise = $derived(
 		$sessions.find((s) => {
@@ -23,8 +24,8 @@
 		<p class="cta-sub">Esercizio di oggi completato. Adesso riposo!</p>
 	{:else}
 		<p class="cta-sub">Inizia il primo esercizio di oggi.</p>
-		<a href={resolve("/training")} class="btn btn--secondary cta-btn">
-			<i class="ti ti-dumbbell"></i>
+		<a href={resolve("/training")} class="btn cta-btn">
+			<Icon name="dumbbell" size={20} />
 			Vai agli esercizi
 		</a>
 	{/if}
@@ -36,81 +37,51 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
-		padding: 1.5rem; /* Increased padding for a more premium feel */
-		border-radius: 24px; /* Smoother, more modern corners */
-
-		background: linear-gradient(
-			135deg,
-			hsl(153, 40%, 22%) 0%,
-			/* deep: darker than --color-accent */ hsl(153, 43%, 35%) 50%,
-			/* mid:  matches --color-accent exactly */ hsl(154, 45%, 58%) 100%
-				/* highlight: between accent and accent-dim */
-		);
-
-		/* 2. Layered shadow for depth and a glowing effect */
+		padding: 24px;
+		border-radius: 20px;
+		background: linear-gradient(135deg, #2D6A4F 0%, #40916C 100%);
 		box-shadow:
 			0 10px 15px -3px rgba(0, 0, 0, 0.1),
 			0 4px 6px -2px rgba(0, 0, 0, 0.05),
-			0 20px 40px -10px hsla(160, 70%, 30%, 0.3); /* Colored "glow" shadow */
-
-		/* Ensure all text inside defaults to white for high contrast */
+			0 20px 40px -10px rgba(45, 106, 79, 0.3);
 		color: #ffffff;
 	}
 
 	.cta-title {
 		margin: 0;
-		font-size: 1.5rem; /* Slightly larger */
-		font-weight: 800; /* Extra bold */
+		font-size: 1.5rem;
+		font-weight: 800;
 		letter-spacing: -0.03em;
-		/* Subtle text shadow lifts the title off the gradient */
 		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 	}
 
 	.cta-sub {
 		margin: 0;
 		font-size: 0.9375rem;
-		/* Use a semi-translucent white rather than a gray variable for better blending */
 		color: rgba(255, 255, 255, 0.85);
 		line-height: 1.5;
-		max-width: 90%; /* Prevents text from crowding the edge */
+		max-width: 90%;
 	}
 
 	.cta-btn {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		gap: 0.5rem; /* Space between icon and text */
+		gap: 0.5rem;
 		text-decoration: none;
 		width: 100%;
-		padding: 1rem 1.25rem; /* More substantial button height */
+		height: 50px;
+		background-color: #ffffff;
+		color: #2d6a4f;
 		font-size: 1rem;
 		font-weight: 600;
-		border-radius: 14px;
+		border-radius: 12px;
 		margin-top: 0.5rem;
-		transition: all 0.2s ease;
+		transition: opacity 150ms ease, transform 150ms ease;
 	}
 
-	/* Specific styling for the primary button against the gradient */
-	.btn--primary.cta-btn {
-		background-color: #ffffff;
-		color: hsl(170, 80%, 20%); /* Dark green text for readability */
-	}
-
-	.btn--primary.cta-btn:active {
-		background-color: rgba(255, 255, 255, 0.9);
-		transform: scale(0.98);
-	}
-
-	/* Styling for the secondary button against the gradient */
-	.btn--secondary.cta-btn {
-		background-color: rgba(255, 255, 255, 0.15);
-		color: #ffffff;
-		backdrop-filter: blur(4px); /* Glassmorphism effect */
-		border: 1px solid rgba(255, 255, 255, 0.2);
-	}
-
-	.btn--secondary.cta-btn:active {
-		background-color: rgba(255, 255, 255, 0.25);
+	.cta-btn:active {
+		opacity: 0.9;
 		transform: scale(0.98);
 	}
 </style>

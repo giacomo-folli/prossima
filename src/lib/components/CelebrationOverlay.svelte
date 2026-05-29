@@ -76,7 +76,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(0, 0, 0, 0.35);
+		background: var(--color-overlay);
 		backdrop-filter: blur(4px);
 		-webkit-backdrop-filter: blur(4px);
 		animation: fadeIn 0.25s ease both;
@@ -101,7 +101,7 @@
 	.card {
 		background: var(--color-card);
 		border: 1px solid var(--color-border);
-		border-radius: 1.25rem;
+		border-radius: 16px;
 		padding: 2.5rem 2rem 2rem;
 		max-width: 340px;
 		width: 100%;
@@ -109,6 +109,7 @@
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
+		box-shadow: var(--shadow-elevated);
 		animation: cardUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
 	}
 
@@ -202,6 +203,19 @@
 	/* ── Button ── */
 	.dismiss-btn {
 		width: 100%;
+		height: 52px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 16px;
+		font-weight: 600;
+		border-radius: 14px;
+		transition: opacity 150ms ease, transform 150ms ease;
 		animation: fadeSlideUp 0.4s ease 0.6s both;
+	}
+
+	.dismiss-btn:active {
+		opacity: 0.9;
+		transform: scale(0.985);
 	}
 </style>

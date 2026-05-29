@@ -6,6 +6,7 @@
 	import type { Exercise } from "$lib/types";
 	import { goto } from "$app/navigation";
 	import posthog from "posthog-js";
+	import Icon from "$lib/components/Icon.svelte";
 
 	type SessionExercise = {
 		id: string;
@@ -93,21 +94,21 @@
 
 <div class="training-page">
 	<a href={resolve("/home")} class="nav-back">
-		<i class="ti ti-chevron-left" aria-hidden="true"></i>
+		<Icon name="chevron-left" size={24} />
 		Home
 	</a>
-	<h1 class="page-title">Registra sessione</h1>
+	<h1 class="large-title page-title">Registra sessione</h1>
 
 	<div class="training-layout">
 		<section class="col-program">
 			<header class="col-header">
 				<div>
-					<h2>Programma attuale</h2>
+					<h2 class="ios-section-label">Programma attuale</h2>
 					<p class="col-sub">{program.length} esercizi</p>
 				</div>
 			</header>
 
-			<ol class="program-list">
+			<ol class="program-list ios-card">
 				{#each program as item (item.id)}
 					<li
 						class="program-item"
@@ -118,8 +119,11 @@
 							class="program-link"
 							onclick={() => toggleExercise(item)}
 						>
-							<span class="ex-name">{item.name}</span>
-							<span class="ex-step">{item.step_label}</span>
+							<div class="row-left">
+								<span class="ex-name">{item.name}</span>
+								<span class="ex-step">{item.step_label}</span>
+							</div>
+							<Icon name="chevron-right" size={16} class="chevron-arrow" />
 						</div>
 					</li>
 				{/each}
@@ -153,9 +157,9 @@
 <!-- Fixed bottom action bar -->
 <div class="action-bar">
 	<button
-		class="btn btn--primary btn-log"
+		class="btn btn-log"
 		onclick={logSession}
-		disabled={program.length === 0 || celebrating}
+		disabled={(selectedExercises.size === 0 && selectedQuick.size === 0) || celebrating}
 	>
 		Registra sessione
 	</button>
@@ -166,13 +170,9 @@
 		max-width: 600px;
 		margin: 0 auto;
 		width: 100%;
-	}
-
-	.page-title {
+	}	.page-title {
 		margin: 0 0 1.25rem;
-		font-size: 1.75rem;
-		font-weight: 700;
-		letter-spacing: -0.03em;
+		padding: 0 1rem;
 	}
 
 	.training-layout {
@@ -182,6 +182,7 @@
 		width: 100%;
 		max-width: 600px;
 		margin: 0 auto;
+		padding: 0 1rem;
 	}
 
 	/* Pushes content above the fixed bar height + a little breathing room */
@@ -190,20 +191,12 @@
 	}
 
 	.col-header {
-		margin-bottom: 1rem;
-	}
-
-	h2 {
-		margin: 0;
-		font-size: 1.25rem;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		color: var(--color-text);
+		margin-bottom: 0.5rem;
 	}
 
 	.col-sub {
 		margin: 0.25rem 0 0;
-		font-size: 0.875rem;
+		font-size: 13px;
 		color: var(--color-muted);
 	}
 
@@ -212,53 +205,42 @@
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		background: var(--color-card, #1c1c1e);
-		border: 1px solid var(--color-border, #2c2c2e);
-		border-radius: 12px;
 		overflow: hidden;
 	}
 
 	.program-item {
-		border-bottom: 1px solid var(--color-border, #2c2c2e);
+		border-bottom: 1px solid var(--color-border);
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		padding-right: 1.25rem;
+		transition: background 0.15s ease, color 0.15s ease;
 	}
 
 	.program-item:last-child {
 		border-bottom: none;
 	}
 
-	/* input[type="checkbox"] {
-		width: 1.5rem;
-		height: 1.5rem;
-		min-width: 1.5rem;
-		min-height: 1.5rem;
-		accent-color: var(--color-accent, #2c974b);
-		cursor: pointer;
-		border-radius: 4px;
-	}
- */
 	.program-link {
 		width: 100%;
 		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: flex-start;
-		gap: 0.35rem;
+		align-items: center;
+		justify-content: space-between;
 		padding: 1rem 1.25rem;
 		text-decoration: none;
 		color: inherit;
-		transition: background 0.15s ease;
+		cursor: pointer;
 	}
 
-	/* .program-link:hover {
-		background: rgba(255, 255, 255, 0.05);
-	} */
+	.row-left {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		align-items: flex-start;
+		flex: 1;
+		min-width: 0;
+	}
 
 	.ex-name {
-		font-size: 1rem;
+		font-size: 17px;
 		font-weight: 600;
 		color: inherit;
 		white-space: normal;
@@ -266,9 +248,16 @@
 	}
 
 	.ex-step {
-		font-size: 0.85rem;
+		font-size: 13px;
 		color: var(--color-muted);
 		text-align: left;
+	}
+
+	:global(.chevron-arrow) {
+		color: var(--color-muted);
+		opacity: 0.5;
+		flex-shrink: 0;
+		margin-left: 0.5rem;
 	}
 
 	/* Quick section */
@@ -278,16 +267,15 @@
 
 	.quick-label {
 		margin: 0 0 1rem;
-		font-size: 0.75rem;
+		font-size: 13px;
 		font-weight: 600;
-		letter-spacing: 0.1em;
+		letter-spacing: 0.8px;
 		text-transform: uppercase;
 		color: var(--color-muted);
 	}
 
 	.quick-grid {
 		display: grid;
-		/* Mobile-first: exactly 3 columns */
 		grid-template-columns: repeat(3, 1fr);
 		gap: 0.75rem;
 	}
@@ -299,26 +287,27 @@
 		justify-content: center;
 		gap: 0.5rem;
 		padding: 1rem 0.5rem;
-		border-radius: 12px;
-		border: 1px solid var(--color-border, #2c2c2e);
-		background: var(--color-card, #1c1c1e);
+		border-radius: 16px;
+		border: 1px solid var(--color-border);
+		background: var(--color-card);
 		cursor: pointer;
 		transition: all 0.2s ease;
 	}
 
 	.quick-box:hover {
-		background: var(--color-track, #2c2c2e);
+		background: var(--color-track);
 	}
 
 	.program-item.active,
 	.quick-box.active {
-		background: var(--color-accent, #2c974b);
-		border-color: var(--color-accent, #2c974b);
+		background: var(--color-accent);
+		border-color: var(--color-accent);
+		color: #ffffff;
 	}
 
-	.program-item.active,
-	.quick-box.active .quick-label-text {
-		color: #ffffff;
+	.program-item.active .ex-step,
+	.program-item.active :global(.chevron-arrow) {
+		color: rgba(255, 255, 255, 0.85);
 	}
 
 	.quick-icon {
@@ -327,11 +316,16 @@
 	}
 
 	.quick-label-text {
-		font-size: 0.8rem;
-		font-weight: 500;
+		font-size: 12px;
+		font-weight: 600;
 		color: var(--color-text);
 		text-align: center;
 		line-height: 1.2;
+		transition: color 0.15s ease;
+	}
+
+	.quick-box.active .quick-label-text {
+		color: #ffffff;
 	}
 
 	/* ── Fixed bottom action bar ── */
@@ -341,10 +335,7 @@
 		left: 0;
 		right: 0;
 		z-index: 100;
-
-		/* Respect notches / home indicators on iOS */
 		padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
-
 		display: flex;
 		justify-content: stretch;
 	}
@@ -356,42 +347,39 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-
-		/* Extend the blur box a few rems above the actual container */
 		height: calc(100% + 2rem);
 		z-index: -1;
-
-		/* Prevent the extended background from blocking clicks on elements beneath it */
 		pointer-events: none;
-
-		/* The actual blur effect */
-		backdrop-filter: blur(10px) saturate(1.4);
-		-webkit-backdrop-filter: blur(10px) saturate(1.4);
-
-		/* Use a mask to fade the blur: transparent at the top, solid black (fully visible) at the bottom */
+		backdrop-filter: blur(20px) saturate(1.8);
+		-webkit-backdrop-filter: blur(20px) saturate(1.8);
 		mask-image: linear-gradient(to bottom, transparent 0%, black 60%);
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 60%);
-
-		/* Add a subtle dark gradient to match your app's theme (using your var(--color-card) base) */
 		background: linear-gradient(
 			to bottom,
 			transparent 0%,
-			rgba(28, 28, 30, 0.3) 100%
+			var(--color-tab-bar) 100%
 		);
 	}
 
 	.btn-log {
-		/* Full width inside the bar on mobile */
 		width: 100%;
-		padding: 0.875rem 1.5rem;
-		font-size: 1rem;
+		height: 52px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 16px;
 		font-weight: 600;
-		border-radius: 8px;
-		background-color: var(--color-accent, #2c974b);
+		border-radius: 14px;
+		background-color: var(--color-accent);
 		color: white;
 		border: none;
 		cursor: pointer;
-		transition: opacity 0.2s;
+		transition: opacity 150ms ease, transform 150ms ease;
+	}
+
+	.btn-log:active:not(:disabled) {
+		opacity: 0.9;
+		transform: scale(0.985);
 	}
 
 	.btn-log:disabled {
@@ -399,7 +387,7 @@
 		cursor: not-allowed;
 	}
 
-	/* Desktop: centre-align the bar content to match the page max-width */
+	/* Desktop */
 	@media (min-width: 600px) {
 		.action-bar {
 			justify-content: center;
