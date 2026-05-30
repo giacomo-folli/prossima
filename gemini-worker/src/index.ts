@@ -139,6 +139,8 @@ export default {
 			temperature,
 			maxOutputTokens,
 			responseMimeType,
+			responseSchema,
+			model,
 		} = body;
 
 		// Parameter validation
@@ -206,6 +208,7 @@ export default {
 				typeof maxOutputTokens === "number" ? maxOutputTokens : undefined,
 			responseMimeType:
 				typeof responseMimeType === "string" ? responseMimeType : undefined,
+			responseSchema: responseSchema || undefined,
 		};
 
 		// ── Streaming Path ────────────────────────────────────────────────────────

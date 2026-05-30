@@ -28,6 +28,7 @@ export interface GenerateOptions {
 	temperature?: number;
 	maxOutputTokens?: number;
 	responseMimeType?: string;
+	responseSchema?: any;
 }
 
 export interface ExerciseSuggestion {
@@ -56,6 +57,7 @@ export async function generateText(
 			temperature: options.temperature,
 			maxOutputTokens: options.maxOutputTokens,
 			responseMimeType: options.responseMimeType,
+			responseSchema: options.responseSchema,
 		}),
 	});
 
@@ -90,6 +92,7 @@ export async function chat(
 			temperature: options.temperature,
 			maxOutputTokens: options.maxOutputTokens,
 			responseMimeType: options.responseMimeType,
+			responseSchema: options.responseSchema,
 		}),
 	});
 
@@ -127,6 +130,7 @@ export async function* streamText(
 			model: options.model,
 			temperature: options.temperature,
 			maxOutputTokens: options.maxOutputTokens,
+			responseSchema: options.responseSchema,
 		}),
 	});
 
@@ -230,6 +234,27 @@ Requirements:
 			temperature: 0.5,
 			maxOutputTokens: 1024,
 			responseMimeType: "application/json",
+			responseSchema: {
+				type: "OBJECT",
+				properties: {
+					name: {
+						type: "STRING",
+						description: "Refined exercise name",
+					},
+					steps: {
+						type: "ARRAY",
+						items: {
+							type: "STRING",
+						},
+						description: "3 to 6 progressive overload steps, representing a progression timeline from the user's current baseline to their goal",
+					},
+					rationale: {
+						type: "STRING",
+						description: "One-sentence coaching rationale",
+					},
+				},
+				required: ["name", "steps", "rationale"],
+			},
 		});
 
 		let cleanRaw = raw.trim();
