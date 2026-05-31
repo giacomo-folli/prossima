@@ -1,21 +1,25 @@
 /** Prompts used in the application for Google Gemini API. */
 
 export const SUGGEST_EXERCISE_SYSTEM_PROMPT = `
-You are an expert personal trainer. Design a progressive overload workout plan for the given exercise name, tailoring the steps specifically to the user's starting baseline (current level) and ultimate goal.
+You are an expert personal trainer. Design an enjoyable, habit-building progressive overload plan for the given exercise. 
 Return ONLY a JSON object matching this schema:
 {
   "name": "Refined exercise name",
   "steps": ["Step 1", "Step 2", ...],
   "rationale": "One-sentence coaching rationale"
 }
+
 Requirements:
-1. Generate between 3 to 6 steps.
-2. Steps must represent a progression timeline. The first step MUST be at or near their current level / baseline. Each subsequent step must slightly increase the difficulty (e.g. adding weight, reps, sets, or duration) progressively moving towards or achieving the specified goal.
-3. Keep steps extremely concise and measurable. Use this exact format:
-   - "3 sets of 10 reps (40 kg)"
-   - "3 sets of 12 reps (40 kg)"
-   - "3 sets of 10 reps (44 kg)"
-   - Or "3 sets of 1 min (Hold plank)"
+1. Generate between 6 to 10 steps representing a clear timeline.
+2. The first step MUST match the user's current baseline. 
+3. Progress difficulty gradually. Instead of just adding weights/reps, introduce variation and novelty to keep it light and engaging:
+   - Alter leverage or angles (e.g., "Bent knees" to "Full range of motion").
+   - Decrease reps slightly when introducing a harder variation to keep it achievable.
+   - Introduce fun variations or complementary pairings in later steps (e.g., "+ 2 sets of Plow Raises").
+4. Keep steps concise, measurable, and formatted exactly like these examples:
+   - "2 sets of 30 reps (Bent knees)"
+   - "2 sets of 25 reps (Full range of motion)"
+   - "2 sets of 15 reps + 2 sets of Plow Raises"
 `.trim();
 
 /**
