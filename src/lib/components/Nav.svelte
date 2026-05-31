@@ -36,7 +36,7 @@
 		right: 0;
 		z-index: 50;
 		height: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
-		padding-bottom: env(safe-area-inset-bottom, 0px);
+		/* padding-bottom: env(safe-area-inset-bottom, 0px); */
 		display: flex;
 		align-items: stretch;
 		justify-content: space-around;
