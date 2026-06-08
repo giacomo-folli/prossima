@@ -1,7 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
-
 export interface Env {
-	GEMINI_API_KEY?: string;
+	GROQ_API_KEY?: string;
 }
 
 const ALLOWED_ORIGIN_PATTERNS = [
@@ -72,7 +70,6 @@ export default {
 		env: Env,
 		ctx: ExecutionContext,
 	): Promise<Response> {
-		// Handle CORS Preflight request
 		if (request.method === "OPTIONS") {
 			return new Response(null, {
 				status: 204,
@@ -82,8 +79,7 @@ export default {
 
 		const url = new URL(request.url);
 
-		// Route validation
-		if (url.pathname !== "/api/gemini") {
+		if (url.pathname !== "/api/groq") {
 			return new Response(
 				JSON.stringify({
 					error: { message: `Path not found: ${url.pathname}`, status: 404 },
@@ -98,7 +94,6 @@ export default {
 			);
 		}
 
-		// Method validation
 		if (request.method !== "POST") {
 			return new Response(
 				JSON.stringify({
@@ -117,7 +112,6 @@ export default {
 			);
 		}
 
-		// Parse body
 		let body: any;
 		try {
 			body = await request.json();
@@ -142,12 +136,10 @@ export default {
 			stream,
 			temperature,
 			maxOutputTokens,
-			responseMimeType,
-			responseSchema,
+			responseFormat,
 			model,
 		} = body;
 
-		// Parameter validation
 		if (typeof prompt !== "string" && !Array.isArray(history)) {
 			return new Response(
 				JSON.stringify({
@@ -166,14 +158,13 @@ export default {
 			);
 		}
 
-		// Check for API key
-		const apiKey = env.GEMINI_API_KEY;
+		const apiKey = env.GROQ_API_KEY;
 		if (!apiKey) {
 			return new Response(
 				JSON.stringify({
 					error: {
 						message:
-							"GEMINI_API_KEY is not configured in the Cloudflare Worker environment.",
+							"GROQ_API_KEY is not configured in the Cloudflare Worker environment.",
 						status: 500,
 					},
 				}),
@@ -187,112 +178,79 @@ export default {
 			);
 		}
 
-		const ai = new GoogleGenAI({ apiKey });
-
-		// Prepare contents structure
-		let contents: any;
+		let messages: any[] = [];
 		if (Array.isArray(history) && history.length > 0) {
-			contents = history.map((item: any) => ({
-				role: item.role === "user" ? "user" : "model",
-				parts: [{ text: item.content }],
+			messages = history.map((item: any) => ({
+				role: item.role === "user" ? "user" : "assistant",
+				content: item.content,
 			}));
 			if (prompt) {
-				contents.push({
+				messages.push({
 					role: "user",
-					parts: [{ text: prompt }],
+					content: prompt,
 				});
 			}
 		} else {
-			contents = prompt;
+			messages.push({
+				role: "user",
+				content: prompt,
+			});
 		}
 
-		const config = {
+		const groqModel = model || "llama-3.1-8b-instant";
+		const payload: any = {
+			model: groqModel,
+			messages,
 			temperature: typeof temperature === "number" ? temperature : 0.7,
-			maxOutputTokens:
-				typeof maxOutputTokens === "number" ? maxOutputTokens : undefined,
-			responseMimeType:
-				typeof responseMimeType === "string" ? responseMimeType : undefined,
-			responseSchema: responseSchema || undefined,
+			stream: stream === true,
 		};
 
-		// ── Streaming Path ────────────────────────────────────────────────────────
-		if (stream === true) {
-			try {
-				const responseStream = await ai.models.generateContentStream({
-					model: "gemini-2.5-flash",
-					contents,
-					config,
-				});
+		if (typeof maxOutputTokens === "number") {
+			payload.max_tokens = maxOutputTokens;
+		}
 
+		if (responseFormat) {
+			payload.response_format = responseFormat;
+		}
+
+		try {
+			const response = await retryWithBackoff({
+				fn: async () => {
+					const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+						method: "POST",
+						headers: {
+							"Authorization": `Bearer ${apiKey}`,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(payload),
+					});
+					if (!res.ok) {
+						const errData = await res.json().catch(() => ({}));
+						throw new Error(errData.error?.message || `HTTP ${res.status}`);
+					}
+					return res;
+				},
+				delayMs: 3000,
+			});
+
+			// If streaming, just pipe the response back
+			if (stream) {
 				const headers = new Headers(getCorsHeaders(request));
 				headers.set("Content-Type", "text/event-stream");
 				headers.set("Cache-Control", "no-cache");
 				headers.set("Connection", "keep-alive");
 
-				const { readable, writable } = new TransformStream();
-				const writer = writable.getWriter();
-				const encoder = new TextEncoder();
-
-				// Process the stream asynchronously in the worker context
-				ctx.waitUntil(
-					(async () => {
-						try {
-							for await (const chunk of responseStream) {
-								const text = chunk.text;
-								if (text) {
-									const sseData = `data: ${JSON.stringify({ text })}\n\n`;
-									await writer.write(encoder.encode(sseData));
-								}
-							}
-						} catch (err: any) {
-							const errorMsg = err instanceof Error ? err.message : String(err);
-							const sseError = `data: ${JSON.stringify({ error: { message: errorMsg } })}\n\n`;
-							await writer.write(encoder.encode(sseError));
-						} finally {
-							await writer.close();
-						}
-					})(),
-				);
-
-				return new Response(readable, {
+				return new Response(response.body, {
 					status: 200,
 					headers,
 				});
-			} catch (err: any) {
-				const errorMsg = err instanceof Error ? err.message : String(err);
-				return new Response(
-					JSON.stringify({
-						error: {
-							message: `Streaming initialization failed: ${errorMsg}`,
-							status: 500,
-						},
-					}),
-					{
-						status: 500,
-						headers: {
-							...getCorsHeaders(request),
-							"Content-Type": "application/json",
-						},
-					},
-				);
 			}
-		}
 
-		// ── Standard Non-Streaming Path ───────────────────────────────────────────
-		try {
-			const response = await retryWithBackoff({
-				fn: async () =>
-					await ai.models.generateContent({
-						model: "gemini-2.5-flash",
-						contents,
-						config,
-					}),
-				delayMs: 3000,
-			});
-
+			// Non-streaming response
+			const data: any = await response.json();
 			return new Response(
 				JSON.stringify({
-					text: response.text ?? "",
+					text: data.choices?.[0]?.message?.content ?? "",
 				}),
 				{
 					status: 200,
@@ -307,7 +265,7 @@ export default {
 			return new Response(
 				JSON.stringify({
 					error: {
-						message: `Gemini API call failed: ${errorMsg}`,
+						message: `Groq API call failed: ${errorMsg}`,
 						status: 500,
 					},
 				}),

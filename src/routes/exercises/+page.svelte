@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ExerciseCard from "$lib/components/ExerciseCard.svelte";
 	import { exerciseProgress, exercises } from "$lib/stores/exercises";
-	import { suggestExercise } from "$lib/gemini";
+	import { suggestExercise } from "$lib/groq";
 	import Icon from "$lib/components/Icon.svelte";
 	import { slide } from "svelte/transition";
 
@@ -43,7 +43,7 @@
 				}
 			} else {
 				stepsError =
-					"I server Gemini sono temporaneamente sovraccarichi. Attendi qualche istante e riprova.";
+					"I server Groq sono temporaneamente sovraccarichi. Attendi qualche istante e riprova.";
 			}
 		} catch (err: any) {
 			console.error("AI generation failed:", err);

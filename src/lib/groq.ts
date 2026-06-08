@@ -1,8 +1,8 @@
 /**
- * gemini.ts
- * Service layer for Google Gemini API communication via a secure Cloudflare Worker proxy.
+ * groq.ts
+ * Service layer for Groq API communication via a secure Cloudflare Worker proxy.
  *
- * Set VITE_GEMINI_WORKER_URL in your .env or .env.local file.
+ * Set VITE_GROQ_WORKER_URL in your .env or .env.local file.
  */
 
 import type { Exercise } from "$lib/types";
@@ -16,17 +16,17 @@ import {
 
 // ── Client ────────────────────────────────────────────────────────────────────
 
-const workerUrl = import.meta.env.VITE_GEMINI_WORKER_URL as string;
+const workerUrl = import.meta.env.VITE_GROQ_WORKER_URL as string;
 if (!workerUrl) {
 	throw new Error(
-		"Missing VITE_GEMINI_WORKER_URL. Add it to your .env or .env.local file.",
+		"Missing VITE_GROQ_WORKER_URL. Add it to your .env or .env.local file.",
 	);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface ChatMessage {
-	role: "user" | "model";
+	role: "user" | "assistant";
 	content: string;
 }
 
@@ -34,8 +34,7 @@ export interface GenerateOptions {
 	model?: string;
 	temperature?: number;
 	maxOutputTokens?: number;
-	responseMimeType?: string;
-	responseSchema?: any;
+	responseFormat?: any;
 }
 
 export interface ExerciseSuggestion {
@@ -53,7 +52,7 @@ export async function generateText(
 	prompt: string,
 	options: GenerateOptions = {},
 ): Promise<string> {
-	const response = await fetch(`${workerUrl}/api/gemini`, {
+	const response = await fetch(`${workerUrl}/api/groq`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -63,8 +62,7 @@ export async function generateText(
 			model: options.model,
 			temperature: options.temperature,
 			maxOutputTokens: options.maxOutputTokens,
-			responseMimeType: options.responseMimeType,
-			responseSchema: options.responseSchema,
+			responseFormat: options.responseFormat,
 		}),
 	});
 
@@ -88,7 +86,7 @@ export async function chat(
 	messages: ChatMessage[],
 	options: GenerateOptions = {},
 ): Promise<string> {
-	const response = await fetch(`${workerUrl}/api/gemini`, {
+	const response = await fetch(`${workerUrl}/api/groq`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -98,8 +96,7 @@ export async function chat(
 			model: options.model,
 			temperature: options.temperature,
 			maxOutputTokens: options.maxOutputTokens,
-			responseMimeType: options.responseMimeType,
-			responseSchema: options.responseSchema,
+			responseFormat: options.responseFormat,
 		}),
 	});
 
@@ -126,7 +123,7 @@ export async function* streamText(
 	prompt: string,
 	options: GenerateOptions = {},
 ): AsyncGenerator<string> {
-	const response = await fetch(`${workerUrl}/api/gemini`, {
+	const response = await fetch(`${workerUrl}/api/groq`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -137,7 +134,7 @@ export async function* streamText(
 			model: options.model,
 			temperature: options.temperature,
 			maxOutputTokens: options.maxOutputTokens,
-			responseSchema: options.responseSchema,
+			responseFormat: options.responseFormat,
 		}),
 	});
 
@@ -174,13 +171,18 @@ export async function* streamText(
 
 				if (trimmed.startsWith("data: ")) {
 					const dataStr = trimmed.slice(6);
+					if (dataStr === "[DONE]") {
+						return;
+					}
 					try {
 						const parsed = JSON.parse(dataStr);
 						if (parsed.error) {
 							throw new Error(parsed.error.message);
 						}
-						if (parsed.text) {
-							yield parsed.text;
+						// OpenAI/Groq SSE chunk format: choices[0].delta.content
+						const content = parsed.choices?.[0]?.delta?.content;
+						if (content) {
+							yield content;
 						}
 					} catch (e) {
 						if (
@@ -210,35 +212,21 @@ export async function suggestExercise(
 	goal?: string,
 	currentLevel?: string,
 ): Promise<ExerciseSuggestion | null> {
-	const systemPrompt = SUGGEST_EXERCISE_SYSTEM_PROMPT;
+	const systemPrompt = `${SUGGEST_EXERCISE_SYSTEM_PROMPT}
+
+IMPORTANT: You must return a valid JSON object matching this schema:
+{
+  "name": "Refined exercise name",
+  "steps": ["Step 1", "Step 2", "Step 3"],
+  "rationale": "One-sentence coaching rationale"
+}`;
 	const userPrompt = getSuggestExerciseUserPrompt(name, goal, currentLevel);
 
 	try {
 		const raw = await generateText(`${systemPrompt}\n\nUser: ${userPrompt}`, {
 			temperature: 0.5,
 			maxOutputTokens: 1024,
-			responseMimeType: "application/json",
-			responseSchema: {
-				type: "OBJECT",
-				properties: {
-					name: {
-						type: "STRING",
-						description: "Refined exercise name",
-					},
-					steps: {
-						type: "ARRAY",
-						items: {
-							type: "STRING",
-						},
-						description: "3 to 6 progressive overload steps, representing a progression timeline from the user's current baseline to their goal",
-					},
-					rationale: {
-						type: "STRING",
-						description: "One-sentence coaching rationale",
-					},
-				},
-				required: ["name", "steps", "rationale"],
-			},
+			responseFormat: { type: "json_object" },
 		});
 
 		let cleanRaw = raw.trim();
@@ -253,12 +241,12 @@ export async function suggestExercise(
 		try {
 			return JSON.parse(cleanRaw) as ExerciseSuggestion;
 		} catch (parseErr) {
-			console.error("gemini.suggestExercise: JSON parse failed. Raw response:", raw);
+			console.error("groq.suggestExercise: JSON parse failed. Raw response:", raw);
 			console.error("Cleaned response tried to parse:", cleanRaw);
 			throw parseErr;
 		}
 	} catch (err) {
-		console.error("gemini.suggestExercise: failed to parse response", err);
+		console.error("groq.suggestExercise: failed to parse response", err);
 		return null;
 	}
 }

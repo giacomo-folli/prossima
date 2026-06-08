@@ -1,14 +1,11 @@
 {
-  "name": "prossima-gemini-proxy",
+  "name": "prossima-groq-proxy",
   "version": "1.0.0",
-  "description": "CORS-enabled secure proxy for Google Gemini API",
+  "description": "CORS-enabled secure proxy for Groq API",
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
-  },
-  "dependencies": {
-    "@google/genai": "^2.6.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250204.0",

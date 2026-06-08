@@ -20,6 +20,7 @@ Requirements:
    - "2 sets of 30 reps (Bent knees)"
    - "2 sets of 25 reps (Full range of motion)"
    - "2 sets of 15 reps + 2 sets of Plow Raises"
+5. Keep the name of each step not too long but expressive and clear
 `.trim();
 
 /**

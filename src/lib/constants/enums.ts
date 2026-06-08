@@ -3,7 +3,6 @@ export enum ExerciseType {
 	QUICK_EXERCISE = "quick-exercise",
 }
 
-export enum GeminiModel {
-	GEMINI_1_5_FLASH = "gemini-1.5-flash",
-	GEMINI_1_5_PRO = "gemini-1.5-pro",
+export enum GroqModel {
+	LLAMA_3_1_8B_INSTANT = "llama-3.1-8b-instant",
 }
