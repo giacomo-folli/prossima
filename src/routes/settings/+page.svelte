@@ -43,14 +43,20 @@
 
 <main class="page settings-page">
 	<!-- Profile header -->
-	<div class="profile-header">
-		<div class="avatar">M</div>
+	<a href="/settings/profile" class="profile-header">
+		{#if $user?.avatar_url}
+			<img src={$user.avatar_url} alt="Avatar" class="avatar avatar-img" />
+		{:else}
+			<div class="avatar">
+				{($user?.display_name || $user?.email || "?").charAt(0).toUpperCase()}
+			</div>
+		{/if}
 		<div class="profile-info">
-			<p class="profile-name">{$user?.display_name}</p>
+			<p class="profile-name">{$user?.display_name || 'Utente'}</p>
 			<p class="profile-email">{$user?.email}</p>
 		</div>
 		<Icon name="chevron-right" size={16} class="profile-chevron" />
-	</div>
+	</a>
 
 	<!-- Aspetto -->
 	<p class="section-label">Aspetto</p>
@@ -153,6 +159,11 @@
 		padding: 1.25rem 0 1rem;
 		cursor: pointer;
 		min-height: 56px;
+		transition: opacity 0.2s ease;
+	}
+
+	.profile-header:active {
+		opacity: 0.7;
 	}
 
 	.avatar {
@@ -168,6 +179,10 @@
 		color: #fff;
 		flex-shrink: 0;
 		letter-spacing: -0.02em;
+	}
+
+	.avatar-img {
+		object-fit: cover;
 	}
 
 	.profile-info {

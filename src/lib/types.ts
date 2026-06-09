@@ -42,5 +42,5 @@ export interface UserProfile {
 	id?: string;
 	display_name?: string;
 	full_name?: string;
-	avar_url?: string;
+	avatar_url?: string;
 }

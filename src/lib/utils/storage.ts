@@ -185,6 +185,35 @@ export async function loadUser(): Promise<UserProfile | null> {
 	}
 }
 
+export async function updateUserProfile(
+	profile: Partial<UserProfile>,
+): Promise<UserProfile | null> {
+	try {
+		const { data: { user } } = await supabase.auth.getUser();
+		if (!user) {
+			console.error("No active session to update profile");
+			return null;
+		}
+
+		const { data, error } = await supabase
+			.from("profiles")
+			.update(profile)
+			.eq("id", user.id)
+			.select("id, display_name, full_name, avatar_url")
+			.single();
+
+		if (error) {
+			console.error("Supabase error updating user profile:", error.message);
+			return null;
+		}
+
+		return (data ?? null) as UserProfile;
+	} catch (err) {
+		console.error("Unexpected failure updating user profile:", err);
+		return null;
+	}
+}
+
 // src/lib/utils/storage.ts
 export async function updateTrainingSession(
 	id: string,
