@@ -1,43 +1,42 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import Modal from "./Modal.svelte";
 	import Icon from "./Icon.svelte";
 	import { generateAiRecap, type AiRecapResult } from "$lib/groq";
 	import { user } from "$lib/stores/user";
 	import { sessions } from "$lib/stores/sessions";
 
-	let { visible = false, stats, onClose }: { visible: boolean; stats: any[]; onClose: () => void } = $props();
+	let {
+		visible = $bindable(false),
+		stats,
+		onClose,
+	}: { visible: boolean; stats: any[]; onClose: () => void } = $props();
 
 	let loading = $state(false);
 	let error = $state(false);
 	let recap = $state<AiRecapResult | null>(null);
-	let dismissed = $state(false);
 
+	// Fetch recap automatically whenever the modal opens
 	$effect(() => {
 		if (visible) {
-			dismissed = false;
 			fetchRecap();
 		}
 	});
 
+	// Fire the close callback parent cleanup event if the bound visibility state drops
 	$effect(() => {
-		if (visible && !dismissed) {
-			document.body.classList.add("no-scroll");
-		} else {
-			document.body.classList.remove("no-scroll");
+		if (!visible) {
+			onClose();
 		}
-		return () => {
-			document.body.classList.remove("no-scroll");
-		};
 	});
 
 	async function fetchRecap() {
 		error = false;
-		
+
 		// 1. Check cached recap for today
 		const userId = $user?.id || "guest";
 		const cacheKey = `prossima_ai_recap_${userId}`;
 		const todayStr = new Date().toLocaleDateString("sv"); // 'YYYY-MM-DD'
-		
+
 		try {
 			const cached = localStorage.getItem(cacheKey);
 			if (cached) {
@@ -55,31 +54,39 @@
 		// 2. Fetch new recap from AI
 		loading = true;
 
-		// Ensure sessions are loaded
 		try {
 			await sessions.init();
 		} catch (e) {
 			console.error("Errore caricamento sessioni:", e);
 		}
 
-		// Extract dates of sessions in the last 30 days
 		const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 		const recentSessionDates = $sessions
-			.filter(s => s.completed_at && new Date(s.completed_at).getTime() >= thirtyDaysAgo)
-			.map(s => new Date(s.completed_at).toLocaleDateString("sv")); // YYYY-MM-DD
+			.filter(
+				(s) =>
+					s.completed_at && new Date(s.completed_at).getTime() >= thirtyDaysAgo,
+			)
+			.map((s) => new Date(s.completed_at).toLocaleDateString("sv"));
 
 		const result = await generateAiRecap(stats, recentSessionDates);
-		
-		if (result && result.summary && Array.isArray(result.suggestions) && result.suggestions.length === 3) {
+
+		if (
+			result &&
+			result.summary &&
+			Array.isArray(result.suggestions) &&
+			result.suggestions.length === 3
+		) {
 			recap = result;
 			loading = false;
-			
-			// Save to cache
+
 			try {
-				localStorage.setItem(cacheKey, JSON.stringify({
-					date: todayStr,
-					data: result
-				}));
+				localStorage.setItem(
+					cacheKey,
+					JSON.stringify({
+						date: todayStr,
+						data: result,
+					}),
+				);
 			} catch (e) {
 				console.error("Errore scrittura cache localStorage:", e);
 			}
@@ -88,203 +95,71 @@
 			error = true;
 		}
 	}
-
-	function closeDrawer() {
-		dismissed = true;
-		setTimeout(() => {
-			onClose();
-		}, 250);
-	}
 </script>
 
-{#if visible}
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="drawer-overlay" class:dismissed onclick={closeDrawer}>
-		<div class="drawer-content" class:dismissed onclick={(e) => e.stopPropagation()}>
-			
-			<header class="drawer-header">
-				<div class="header-title-container">
-					<div class="header-icon-badge">
-						<Icon name="sparkles" size={18} />
-					</div>
-					<h2 class="drawer-title">Coaching AI Recap</h2>
+<Modal bind:showModal={visible} title="Coaching AI Recap">
+	<div slot="body">
+		{#if loading}
+			<div class="loading-state">
+				<div class="skeleton skeleton-summary"></div>
+				<h3 class="section-subtitle-skeleton"></h3>
+				<div class="skeleton-list">
+					<div class="skeleton skeleton-card"></div>
+					<div class="skeleton skeleton-card"></div>
+					<div class="skeleton skeleton-card"></div>
 				</div>
-				<button class="close-btn" onclick={closeDrawer} aria-label="Chiudi">
-					<Icon name="x" size={20} />
+			</div>
+		{:else if error}
+			<div class="error-state">
+				<div class="error-icon-wrap">⚠️</div>
+				<p class="error-text">
+					Impossibile generare il recap. Controlla la connessione o riprova.
+				</p>
+				<button class="btn btn--primary retry-btn" onclick={fetchRecap}>
+					Riprova
 				</button>
-			</header>
+			</div>
+		{:else if recap}
+			<div class="summary-card">
+				<div class="summary-header">
+					<Icon name="zap" size={18} class="accent-icon" />
+					<span class="summary-title">Riepilogo Avanzamento</span>
+				</div>
+				<p class="summary-text">{recap.summary}</p>
+			</div>
 
-			{#if loading}
-				<div class="loading-state">
-					<div class="skeleton skeleton-summary"></div>
-					<h3 class="section-subtitle-skeleton"></h3>
-					<div class="skeleton-list">
-						<div class="skeleton skeleton-card"></div>
-						<div class="skeleton skeleton-card"></div>
-						<div class="skeleton skeleton-card"></div>
-					</div>
-				</div>
-			{:else if error}
-				<div class="error-state">
-					<div class="error-icon-wrap">⚠️</div>
-					<p class="error-text">Impossibile generare il recap. Controlla la connessione o riprova.</p>
-					<button class="btn btn--primary retry-btn" onclick={fetchRecap}>
-						Riprova
-					</button>
-				</div>
-			{:else if recap}
-				<div class="summary-card">
-					<div class="summary-header">
-						<Icon name="zap" size={18} class="accent-icon" />
-						<span class="summary-title">Riepilogo Avanzamento</span>
-					</div>
-					<p class="summary-text">{recap.summary}</p>
-				</div>
-
-				<div class="suggestions-section">
-					<h3 class="section-subtitle">3 Consigli del Coach</h3>
-					<div class="suggestions-list">
-						{#each recap.suggestions as suggestion, i}
-							<div class="suggestion-card">
-								<div class="suggestion-icon-wrap" class:icon-0={i === 0} class:icon-1={i === 1} class:icon-2={i === 2}>
-									{#if i === 0}
-										<Icon name="dumbbell" size={20} />
-									{:else if i === 1}
-										<Icon name="flame" size={20} />
-									{:else}
-										<Icon name="list-check" size={20} />
-									{/if}
-								</div>
-								<div class="suggestion-content">
-									<span class="suggestion-num">Suggerimento {i + 1}</span>
-									<p class="suggestion-text">{suggestion}</p>
-								</div>
+			<div class="suggestions-section">
+				<h3 class="section-subtitle">3 Consigli del Coach</h3>
+				<div class="suggestions-list">
+					{#each recap.suggestions as suggestion, i}
+						<div class="suggestion-card">
+							<div
+								class="suggestion-icon-wrap"
+								class:icon-0={i === 0}
+								class:icon-1={i === 1}
+								class:icon-2={i === 2}
+							>
+								{#if i === 0}
+									<Icon name="dumbbell" size={20} />
+								{:else if i === 1}
+									<Icon name="flame" size={20} />
+								{:else}
+									<Icon name="list-check" size={20} />
+								{/if}
 							</div>
-						{/each}
-					</div>
+							<div class="suggestion-content">
+								<span class="suggestion-num">Suggerimento {i + 1}</span>
+								<p class="suggestion-text">{suggestion}</p>
+							</div>
+						</div>
+					{/each}
 				</div>
-			{/if}
-			
-		</div>
+			</div>
+		{/if}
 	</div>
-{/if}
+</Modal>
 
 <style>
-	/* Overlay backdrop */
-	.drawer-overlay {
-		position: fixed;
-		inset: 0;
-		z-index: 999;
-		background: var(--color-overlay);
-		backdrop-filter: blur(4px);
-		-webkit-backdrop-filter: blur(4px);
-		display: flex;
-		align-items: flex-end;
-		justify-content: center;
-		animation: fadeIn 0.25s ease both;
-	}
-
-	.drawer-overlay.dismissed {
-		animation: fadeOut 0.25s ease both;
-	}
-
-	/* Drawer card container */
-	.drawer-content {
-		width: 100%;
-		max-width: 600px;
-		background: var(--color-card);
-		border-top-left-radius: var(--radius-lg);
-		border-top-right-radius: var(--radius-lg);
-		border: 1px solid var(--color-border);
-		border-bottom: none;
-		padding: 1.5rem 1.5rem calc(2rem + env(safe-area-inset-bottom, 0px));
-		box-shadow: var(--shadow-elevated);
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-		max-height: 85vh;
-		overflow-y: auto;
-		animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-	}
-
-	.drawer-content.dismissed {
-		animation: slideDown 0.25s ease both;
-	}
-
-	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
-	}
-
-	@keyframes fadeOut {
-		from { opacity: 1; }
-		to { opacity: 0; }
-	}
-
-	@keyframes slideUp {
-		from { transform: translateY(100%); }
-		to { transform: translateY(0); }
-	}
-
-	@keyframes slideDown {
-		from { transform: translateY(0); }
-		to { transform: translateY(100%); }
-	}
-
-	/* Header */
-	.drawer-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding-bottom: 0.5rem;
-		border-bottom: 1px solid var(--color-border);
-	}
-
-	.header-title-container {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	.header-icon-badge {
-		background: var(--color-accent-dim);
-		color: var(--color-accent);
-		border-radius: 10px;
-		width: 32px;
-		height: 32px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.drawer-title {
-		margin: 0;
-		font-size: 19px;
-		font-weight: 700;
-		color: var(--color-text);
-		letter-spacing: -0.01em;
-	}
-
-	.close-btn {
-		background: var(--color-track);
-		color: var(--color-text);
-		border: none;
-		width: 32px;
-		height: 32px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		padding: 0;
-	}
-
-	.close-btn:active {
-		opacity: 0.8;
-		transform: scale(0.92);
-	}
-
 	/* Loading Skeleton screen */
 	.loading-state {
 		display: flex;
@@ -326,9 +201,15 @@
 	}
 
 	@keyframes pulse {
-		0% { opacity: 0.4; }
-		50% { opacity: 0.8; }
-		100% { opacity: 0.4; }
+		0% {
+			opacity: 0.4;
+		}
+		50% {
+			opacity: 0.8;
+		}
+		100% {
+			opacity: 0.4;
+		}
 	}
 
 	/* Error State */
@@ -397,6 +278,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
+		margin-top: 0.5rem;
 	}
 
 	.section-subtitle {

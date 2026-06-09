@@ -1,9 +1,9 @@
 <script lang="ts">
 	import StepList from "$lib/components/StepList.svelte";
 	import ProgressBar from "$lib/components/ProgressBar.svelte";
+	import DeleteExerciseModal from "$lib/components/DeleteExerciseModal.svelte"; // <-- Component Import
 	import { exercises } from "$lib/stores/exercises";
 	import { page } from "$app/state";
-	import { goto } from "$app/navigation";
 	import type { Exercise } from "$lib/types";
 	import posthog from "posthog-js";
 	import { resolve } from "$app/paths";
@@ -33,7 +33,7 @@
 	);
 	let hasCompleted = $derived((exercise?.steps ?? []).some((s) => s.completed));
 
-	// Delete confirmation state
+	// Modal view control state triggers
 	let showDeleteConfirm = $state(false);
 
 	function completeStep() {
@@ -61,40 +61,7 @@
 
 		exercises.undoLastCompletion(exercise.id);
 	}
-
-	function confirmDelete() {
-		showDeleteConfirm = true;
-	}
-
-	function cancelDelete() {
-		showDeleteConfirm = false;
-	}
-
-	function deleteExercise() {
-		if (!exercise) return;
-
-		posthog.capture("exercise_deleted", {
-			exercise_id: exercise.id,
-			exercise_name: exercise.name,
-		});
-
-		exercises.remove(exercise.id);
-		goto(resolve("/exercises"));
-	}
-
-	function handleBackdropClick(e: MouseEvent) {
-		if ((e.target as HTMLElement).classList.contains("confirm-backdrop")) {
-			cancelDelete();
-		}
-	}
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === "Escape") cancelDelete();
-	}
 </script>
-
-<svelte:window on:keydown={handleKeydown} />
-<svelte:body class:no-scroll={showDeleteConfirm} />
 
 {#if exercise}
 	<div class="page-layout">
@@ -118,7 +85,7 @@
 					</a>
 					<button
 						class="delete-btn"
-						onclick={confirmDelete}
+						onclick={() => (showDeleteConfirm = true)}
 						aria-label="Elimina esercizio"
 						title="Elimina esercizio"
 					>
@@ -157,9 +124,7 @@
 			<div class="steps-header">
 				<p class="section-label">Tutti gli step</p>
 				{#if hasCompleted}
-					<button class="btn-undo" onclick={undoStep}>
-						Annulla ultimo
-					</button>
+					<button class="btn-undo" onclick={undoStep}> Annulla ultimo </button>
 				{/if}
 			</div>
 			<div class="steps-section-card ios-card">
@@ -178,49 +143,7 @@
 	</div>
 {/if}
 
-<!-- Delete confirmation sheet -->
-{#if showDeleteConfirm}
-	<div
-		class="confirm-backdrop"
-		role="presentation"
-		onclick={handleBackdropClick}
-	>
-		<div
-			class="confirm-sheet ios-card"
-			role="dialog"
-			aria-modal="true"
-			aria-labelledby="confirm-title"
-		>
-			<div class="drag-handle"></div>
-
-			<div class="confirm-body">
-				<div class="confirm-icon">
-					<Icon name="trash" size={24} />
-				</div>
-				<h2 id="confirm-title">Elimina esercizio</h2>
-				<p class="confirm-desc">
-					Vuoi eliminare <strong>{exercise?.name}</strong>? Questa azione non
-					può essere annullata.
-				</p>
-			</div>
-
-			<div class="confirm-actions">
-				<button
-					class="btn btn--danger confirm-delete-btn"
-					onclick={deleteExercise}
-				>
-					Elimina
-				</button>
-				<button
-					class="btn btn--secondary confirm-cancel-btn"
-					onclick={cancelDelete}
-				>
-					Annulla
-				</button>
-			</div>
-		</div>
-	</div>
-{/if}
+<DeleteExerciseModal bind:showModal={showDeleteConfirm} {exercise} />
 
 <style>
 	.page-layout {
@@ -230,7 +153,6 @@
 		padding-bottom: 2rem;
 	}
 
-	/* ── Top bar & Back nav ── */
 	.top-bar {
 		display: flex;
 		align-items: center;
@@ -249,7 +171,6 @@
 		opacity: 0.6;
 	}
 
-	/* ── Header ── */
 	.ex-header {
 		padding: 0;
 	}
@@ -268,7 +189,6 @@
 		gap: 0.5rem;
 	}
 
-	/* ── Edit button ── */
 	.edit-btn {
 		display: flex;
 		align-items: center;
@@ -276,8 +196,8 @@
 		width: 36px;
 		height: 36px;
 		border-radius: 50%;
-		background: #E0F2FE;
-		color: #0284C7;
+		background: #e0f2fe;
+		color: #0284c7;
 		padding: 0;
 		flex-shrink: 0;
 		transition:
@@ -303,7 +223,6 @@
 		color: var(--color-text);
 	}
 
-	/* ── Delete button ── */
 	.delete-btn {
 		display: flex;
 		align-items: center;
@@ -311,8 +230,8 @@
 		width: 36px;
 		height: 36px;
 		border-radius: 50%;
-		background: #FEE2E2;
-		color: #EF4444;
+		background: #fee2e2;
+		color: #ef4444;
 		padding: 0;
 		flex-shrink: 0;
 		transition:
@@ -359,7 +278,6 @@
 		color: var(--color-muted);
 	}
 
-	/* ── Section Label ── */
 	.section-label {
 		margin: 0 0 10px;
 		font-size: 13px;
@@ -369,7 +287,6 @@
 		color: var(--color-muted);
 	}
 
-	/* ── Current Section ── */
 	.current-section {
 		padding: 0;
 	}
@@ -407,7 +324,9 @@
 		color: #ffffff;
 		border: none;
 		cursor: pointer;
-		transition: opacity 150ms ease, transform 150ms ease;
+		transition:
+			opacity 150ms ease,
+			transform 150ms ease;
 		white-space: nowrap;
 	}
 
@@ -427,7 +346,6 @@
 		border: 1px solid rgba(44, 151, 75, 0.2);
 	}
 
-	/* ── Steps Section ── */
 	.steps-section-wrapper {
 		display: flex;
 		flex-direction: column;
@@ -462,140 +380,5 @@
 
 	.btn-undo:active {
 		opacity: 0.6;
-	}
-
-	/* ── Confirm sheet ── */
-	.confirm-backdrop {
-		position: fixed;
-		inset: 0;
-		background: var(--color-overlay);
-		display: flex;
-		align-items: flex-end;
-		justify-content: center;
-		z-index: 100;
-		animation: fade-in 0.18s ease;
-	}
-
-	@media (min-width: 520px) {
-		.confirm-backdrop {
-			align-items: center;
-			padding: 1rem;
-		}
-	}
-
-	.confirm-sheet {
-		width: 100%;
-		max-width: 480px;
-		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-		padding: 0;
-		box-shadow: var(--shadow-elevated);
-		animation: slide-up 0.24s cubic-bezier(0.32, 1.2, 0.6, 1);
-		overflow: hidden;
-	}
-
-	@media (min-width: 520px) {
-		.confirm-sheet {
-			border-radius: var(--radius-lg);
-			animation: pop-in 0.22s cubic-bezier(0.32, 1.2, 0.6, 1);
-		}
-	}
-
-	.drag-handle {
-		width: 36px;
-		height: 4px;
-		border-radius: 2px;
-		background: var(--color-track);
-		margin: 0.75rem auto 0;
-	}
-
-	@media (min-width: 520px) {
-		.drag-handle {
-			display: none;
-		}
-	}
-
-	.confirm-body {
-		padding: 1.5rem 1.5rem 1rem;
-		text-align: center;
-	}
-
-	.confirm-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 3rem;
-		height: 3rem;
-		border-radius: 50%;
-		background: rgba(255, 59, 48, 0.12);
-		color: var(--color-danger);
-		font-size: 1.4rem;
-		margin-bottom: 0.85rem;
-	}
-
-	.confirm-body h2 {
-		margin: 0 0 0.5rem;
-		font-size: 1.05rem;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		color: var(--color-text);
-	}
-
-	.confirm-desc {
-		margin: 0;
-		font-size: 0.875rem;
-		color: var(--color-muted);
-		line-height: 1.5;
-	}
-
-	.confirm-desc strong {
-		color: var(--color-text);
-		font-weight: 600;
-	}
-
-	.confirm-actions {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		padding: 0.5rem 1.25rem 1.5rem;
-	}
-
-	.confirm-delete-btn,
-	.confirm-cancel-btn {
-		width: 100%;
-		text-align: center;
-		border-radius: var(--radius-card);
-		padding: 0.8rem;
-		font-size: 0.95rem;
-	}
-
-	@keyframes fade-in {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-
-	@keyframes slide-up {
-		from {
-			transform: translateY(56px);
-			opacity: 0;
-		}
-		to {
-			transform: translateY(0);
-			opacity: 1;
-		}
-	}
-
-	@keyframes pop-in {
-		from {
-			transform: scale(0.93);
-			opacity: 0;
-		}
-		to {
-			transform: scale(1);
-			opacity: 1;
-		}
 	}
 </style>
