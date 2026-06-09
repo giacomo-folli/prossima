@@ -58,7 +58,11 @@
 		color: var(--color-muted);
 		min-height: 44px;
 		padding-top: 2px;
-		transition: color 0.15s ease;
+		transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.tab:active {
+		transform: scale(0.92);
 	}
 
 	.tab-label {

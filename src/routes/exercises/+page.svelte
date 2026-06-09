@@ -264,16 +264,6 @@
 						<span class="ios-section-label">
 							Step <span class="label-hint">— uno per riga</span>
 						</span>
-						{#if creationMode === "manual"}
-							<button
-								type="button"
-								class="ai-gen-btn"
-								on:click={() => (creationMode = "ai")}
-								aria-label="Usa Generatore AI"
-							>
-								<Icon name="sparkles" size={12} /> Genera con AI
-							</button>
-						{/if}
 					</div>
 					<textarea
 						id="ex-steps"

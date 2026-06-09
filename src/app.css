@@ -35,8 +35,11 @@
 	--radius-lg: 20px;
 
 	/* ── Shadows ── */
-	--shadow-card: 0 1px 6px rgba(0, 0, 0, 0.07);
-	--shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.12);
+	--shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06);
+	--shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+	/* ── Animations ── */
+	--anim-fade-up: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
 	font-family: var(--font-sans);
 }
@@ -58,9 +61,26 @@
 		--color-success: #30d158;
 		--color-text-disabled: #636366;
 		--color-tab-bar: rgba(28, 28, 30, 0.82);
-		--shadow-card: 0 1px 3px rgba(0, 0, 0, 0.35);
-		--shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.4);
+		--shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+		--shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.45);
 	}
+}
+
+@keyframes fadeSlideUp {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes pulseSoft {
+	0% { transform: scale(1); }
+	50% { transform: scale(1.02); }
+	100% { transform: scale(1); }
 }
 
 /* ─── Base Reset ──────────────────────────────────────────────────────────── */
@@ -140,10 +160,17 @@ button,
 		border-color 150ms ease;
 }
 
+button:hover:not(:disabled),
+.btn:hover:not(:disabled) {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 button:active:not(:disabled),
 .btn:active:not(:disabled) {
 	opacity: 0.8;
-	transform: scale(0.98);
+	transform: scale(0.97) translateY(0);
+	box-shadow: none;
 }
 
 button:disabled,
@@ -195,6 +222,7 @@ button:disabled,
 	width: 100%;
 	max-width: 600px;
 	margin: 0 auto;
+	animation: var(--anim-fade-up);
 }
 
 /* ─── Typography ──────────────────────────────────────────────────────────── */
@@ -239,10 +267,15 @@ button:disabled,
 	padding: 16px;
 	box-shadow: var(--shadow-card);
 	transition:
-		opacity 150ms ease,
-		transform 150ms ease,
-		background 150ms ease,
-		box-shadow 150ms ease;
+		opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
+		transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+		background 200ms ease,
+		box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-elevated);
 }
 
 .ios-card--tappable:active,
