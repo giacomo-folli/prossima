@@ -71,3 +71,58 @@ The user regularly trains: ${exerciseNames}.
 Give them one specific, actionable tip to improve their weekly routine.
 `.trim();
 }
+
+export const AI_RECAP_SYSTEM_PROMPT = `
+You are an expert fitness coach and personal trainer.
+Analyze the user's exercise progress data and training history to return a JSON object containing a really short and concise summary (in Italian) and EXACTLY 3 actionable, motivational suggestions/tips (in Italian) structured as follows:
+
+1. The first suggestion (suggestions[0]) MUST strictly focus on stuck/blocked exercises. Just notice what exercises are blocked.
+2. The second suggestion (suggestions[1]) MUST strictly focus on under-trained muscle groups. Infer the muscle groups from the user's exercises and detect any lagging categories (e.g., push vs pull vs legs vs core).
+3. The third suggestion (suggestions[2]) MUST strictly focus on the user's workout frequency. Analyze their session history (too many sessions/too few/inconsistent).
+
+The output MUST be a valid JSON object matching this schema:
+{
+  "summary": "A short, encouraging and analytical summary of their current progress. Max 3 sentences.",
+  "suggestions": [
+    "Consiglio 1: focus su esercizi bloccati...",
+    "Consiglio 2: focus su gruppi muscolari sotto-allenati...",
+    "Consiglio 3: focus su frequenza di allenamento..."
+  ]
+}
+
+Ensure the language of the entire response is Italian.
+Do not wrap in any extra formatting except valid JSON.
+`.trim();
+
+export function getAiRecapUserPrompt(
+	exerciseStats: Array<{
+		name: string;
+		done: number;
+		total: number;
+		pct: number;
+		isStuck: boolean;
+		nextStep: string;
+	}>,
+	sessionDates: string[],
+): string {
+	const exercisesStr = exerciseStats
+		.map((ex) => {
+			return `- Esercizio: "${ex.name}" | Progresso: ${ex.done}/${ex.total} step (${ex.pct}% completato) | Stato: ${ex.isStuck ? "BLOCCATO/FERMO (nessuna sessione recente o nessun progresso)" : "In corso"} | Prossimo step: ${ex.nextStep || "Nessuno (completato)"}`;
+		})
+		.join("\n");
+
+	const sessionsStr =
+		sessionDates.length > 0
+			? sessionDates.map((d) => `- Sessione completata il: ${d}`).join("\n")
+			: "Nessuna sessione registrata negli ultimi 30 giorni.";
+
+	return `
+Ecco lo stato attuale dei miei esercizi:
+${exercisesStr}
+
+Ecco la mia cronologia di allenamento (date delle sessioni completate negli ultimi 30 giorni):
+${sessionsStr}
+
+Fornisci il riassunto dell'avanzamento e i 3 suggerimenti/consigli basandoti su questi dati.
+`.trim();
+}

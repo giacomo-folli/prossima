@@ -12,6 +12,8 @@ import {
 	getSuggestExerciseUserPrompt,
 	getProgressFeedbackPrompt,
 	getWeeklyTipPrompt,
+	AI_RECAP_SYSTEM_PROMPT,
+	getAiRecapUserPrompt,
 } from "$lib/constants/prompts";
 
 // ── Client ────────────────────────────────────────────────────────────────────
@@ -331,6 +333,49 @@ User request for enhancement: "${userIntent}"`;
 		return JSON.parse(cleanRaw) as StepsEnhancementResult;
 	} catch (err) {
 		console.error("groq.enhanceSteps failed:", err);
+		return null;
+	}
+}
+
+export interface AiRecapResult {
+	summary: string;
+	suggestions: string[];
+}
+
+/**
+ * Generates a daily coaching recap with progress summary and 3 suggestions.
+ */
+export async function generateAiRecap(
+	exerciseStats: Array<{
+		name: string;
+		done: number;
+		total: number;
+		pct: number;
+		isStuck: boolean;
+		nextStep: string;
+	}>,
+	sessionDates: string[]
+): Promise<AiRecapResult | null> {
+	const systemPrompt = AI_RECAP_SYSTEM_PROMPT;
+	const userPrompt = getAiRecapUserPrompt(exerciseStats, sessionDates);
+
+	try {
+		const raw = await generateText(`${systemPrompt}\n\nUser: ${userPrompt}`, {
+			temperature: 0.7,
+			maxOutputTokens: 1024,
+			responseFormat: { type: "json_object" },
+		});
+
+		let cleanRaw = raw.trim();
+		const firstBrace = cleanRaw.indexOf("{");
+		const lastBrace = cleanRaw.lastIndexOf("}");
+		if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+			cleanRaw = cleanRaw.substring(firstBrace, lastBrace + 1);
+		}
+
+		return JSON.parse(cleanRaw) as AiRecapResult;
+	} catch (err) {
+		console.error("groq.generateAiRecap failed:", err);
 		return null;
 	}
 }

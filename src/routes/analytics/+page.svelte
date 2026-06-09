@@ -2,6 +2,8 @@
 	import { resolve } from "$app/paths";
 	import { exercises } from "$lib/stores/exercises";
 	import { sessions } from "$lib/stores/sessions";
+	import Icon from "$lib/components/Icon.svelte";
+	import AiRecapDrawer from "$lib/components/AiRecapDrawer.svelte";
 
 	const filteredExercises = $derived(
 		$exercises.filter((e) => e.type === "exercise"),
@@ -78,6 +80,8 @@
 				};
 			})
 	);
+
+	let isDrawerOpen = $state(false);
 </script>
 
 <div class="page page-layout">
@@ -169,6 +173,21 @@
 				{/each}
 			</div>
 		</div>
+
+		<!-- AI Recap button -->
+		<div class="ai-recap-section">
+			<button class="btn btn--primary ai-recap-btn" onclick={() => isDrawerOpen = true}>
+				<Icon name="sparkles" size={18} />
+				<span>AI Recap</span>
+			</button>
+		</div>
+
+		<!-- AI Recap Drawer -->
+		<AiRecapDrawer
+			visible={isDrawerOpen}
+			stats={exerciseStats}
+			onClose={() => isDrawerOpen = false}
+		/>
 	{/if}
 </div>
 
@@ -365,5 +384,45 @@
 		color: var(--color-muted);
 		margin: 0;
 		line-height: 1.5;
+	}
+
+	/* AI Recap Button */
+	.ai-recap-section {
+		display: flex;
+		justify-content: center;
+		margin-top: 0.5rem;
+		width: 100%;
+	}
+
+	.ai-recap-btn {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		background: linear-gradient(135deg, var(--color-accent) 0%, #1e4d3a 100%);
+		box-shadow: 0 4px 16px rgba(45, 106, 79, 0.25);
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		padding: 0.85rem 1.5rem;
+		height: 52px;
+		border-radius: var(--radius-card);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	:global(html.dark) .ai-recap-btn {
+		background: linear-gradient(135deg, var(--color-accent) 0%, #2d6a4f 100%);
+		box-shadow: 0 4px 20px rgba(82, 183, 136, 0.2);
+	}
+
+	.ai-recap-btn:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(45, 106, 79, 0.35);
+	}
+
+	.ai-recap-btn:active {
+		transform: scale(0.985) translateY(0);
+		box-shadow: 0 2px 8px rgba(45, 106, 79, 0.2);
+		opacity: 0.95;
 	}
 </style>
