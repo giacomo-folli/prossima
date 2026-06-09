@@ -107,14 +107,24 @@
 		<header class="ex-header">
 			<div class="title-row">
 				<h1>{exercise.name}</h1>
-				<button
-					class="delete-btn"
-					onclick={confirmDelete}
-					aria-label="Elimina esercizio"
-					title="Elimina esercizio"
-				>
-					<Icon name="trash" size={18} />
-				</button>
+				<div class="actions-row">
+					<a
+						href={resolve("/exercises/[id]/edit", { id: exercise.id })}
+						class="edit-btn"
+						aria-label="Modifica esercizio"
+						title="Modifica esercizio"
+					>
+						<Icon name="pencil" size={18} />
+					</a>
+					<button
+						class="delete-btn"
+						onclick={confirmDelete}
+						aria-label="Elimina esercizio"
+						title="Elimina esercizio"
+					>
+						<Icon name="trash" size={18} />
+					</button>
+				</div>
 			</div>
 			<div class="progress-row">
 				<ProgressBar {pct} />
@@ -250,6 +260,39 @@
 		justify-content: space-between;
 		gap: 0.75rem;
 		margin-bottom: 0.75rem;
+	}
+
+	.actions-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	/* ── Edit button ── */
+	.edit-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: #E0F2FE;
+		color: #0284C7;
+		padding: 0;
+		flex-shrink: 0;
+		transition:
+			opacity 150ms ease,
+			transform 150ms ease;
+	}
+
+	:global(html.dark) .edit-btn {
+		background: rgba(10, 132, 255, 0.2);
+		color: #0a84ff;
+	}
+
+	.edit-btn:active {
+		opacity: 0.8;
+		transform: scale(0.96);
 	}
 
 	.ex-header h1 {

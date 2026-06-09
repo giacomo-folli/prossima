@@ -268,3 +268,96 @@ export async function removeExercise(exerciseId: string): Promise<boolean> {
 		return false;
 	}
 }
+
+/**
+ * Updates exercise data (name, active step index) and its associated steps (adding, updating, or deleting).
+ */
+export async function updateExerciseInDB(
+	exerciseId: string,
+	name: string,
+	steps: Array<{ id?: string; description: string; step_index: number; completed: boolean; completed_at?: string }>,
+): Promise<boolean> {
+	try {
+		// 1. Fetch current steps to find which ones were deleted
+		const { data: existingStepsData, error: fetchError } = await supabase
+			.from("steps")
+			.select("id")
+			.eq("exercise_id", exerciseId);
+
+		if (fetchError) {
+			console.error("Failed to fetch existing steps:", fetchError.message);
+			return false;
+		}
+
+		const existingStepIds = (existingStepsData ?? []).map((s) => s.id);
+		const updatedStepIds = steps.map((s) => s.id).filter(Boolean) as string[];
+
+		const stepIdsToDelete = existingStepIds.filter((id) => !updatedStepIds.includes(id));
+		if (stepIdsToDelete.length > 0) {
+			const { error: deleteError } = await supabase
+				.from("steps")
+				.delete()
+				.in("id", stepIdsToDelete);
+			if (deleteError) {
+				console.error("Failed to delete steps:", deleteError.message);
+				return false;
+			}
+		}
+
+		// 2. Fetch the exercise to inspect current_step_index
+		const { data: exerciseData, error: exFetchError } = await supabase
+			.from("exercises")
+			.select("current_step_index")
+			.eq("id", exerciseId)
+			.single();
+
+		if (exFetchError || !exerciseData) {
+			console.error("Failed to fetch exercise current_step_index:", exFetchError?.message);
+			return false;
+		}
+
+		let nextIndex = exerciseData.current_step_index ?? 0;
+		const newTotalSteps = steps.length;
+		if (nextIndex >= newTotalSteps) {
+			nextIndex = Math.max(0, newTotalSteps - 1);
+		}
+
+		// 3. Update the exercise name and current_step_index
+		const { error: exUpdateError } = await supabase
+			.from("exercises")
+			.update({ name, current_step_index: nextIndex })
+			.eq("id", exerciseId);
+
+		if (exUpdateError) {
+			console.error("Failed to update exercise name and progress:", exUpdateError.message);
+			return false;
+		}
+
+		// 4. Upsert steps
+		if (steps.length > 0) {
+			const stepsToUpsert = steps.map((s) => ({
+				id: s.id || crypto.randomUUID(),
+				exercise_id: exerciseId,
+				description: s.description,
+				step_index: s.step_index,
+				completed: s.completed,
+				completed_at: s.completed ? s.completed_at || new Date().toISOString() : null,
+			}));
+
+			const { error: upsertError } = await supabase
+				.from("steps")
+				.upsert(stepsToUpsert);
+
+			if (upsertError) {
+				console.error("Failed to upsert steps:", upsertError.message);
+				return false;
+			}
+		}
+
+		return true;
+	} catch (err) {
+		console.error("Unexpected failure in updateExerciseInDB:", err);
+		return false;
+	}
+}
+

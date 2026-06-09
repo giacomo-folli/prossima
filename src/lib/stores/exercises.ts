@@ -7,6 +7,7 @@ import {
 	updateStepCompletion,
 	insertExercise,
 	removeExercise,
+	updateExerciseInDB,
 } from "../utils/storage";
 
 function createExercisesStore() {
@@ -96,6 +97,18 @@ function createExercisesStore() {
 				update((current) => current.filter((e) => e.id !== exerciseId));
 			}
 			return true;
+		},
+
+		async updateExercise(
+			exerciseId: string,
+			name: string,
+			steps: Array<{ id?: string; description: string; step_index: number; completed: boolean; completed_at?: string }>,
+		): Promise<boolean> {
+			const success = await updateExerciseInDB(exerciseId, name, steps);
+			if (success) {
+				set((await loadExercises()) || []);
+			}
+			return success;
 		},
 	};
 }
