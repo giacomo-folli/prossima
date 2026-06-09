@@ -302,7 +302,11 @@ You must return a valid JSON object matching this schema:
   "steps": ["Enhanced step 1", "Enhanced step 2", "Enhanced step 3"],
   "rationale": "A brief, one-sentence coaching explanation in the same language as the generated steps"
 }
-Ensure the output matches the language of the user instructions or original steps (defaulting to Italian).`;
+Ensure the output matches the language of the user instructions or original steps (defaulting to Italian).
+
+Format Requirements:
+- You MUST format the volume/repetition target of each step using the structure "[Sets Count] serie da [target reps/duration]" (Italian) or "[Sets Count] sets of [target reps/duration]" (English). Always place the sets count first.
+- Examples: "3 serie da 10 reps", "3 serie da 45 sec", "3 sets of 8 reps per gamba".`;
 
 	const userPrompt = `Exercise: ${exerciseName}
 Current Steps:

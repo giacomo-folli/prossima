@@ -16,11 +16,12 @@ Requirements:
    - Alter leverage or angles (e.g., "Bent knees" to "Full range of motion").
    - Decrease reps slightly when introducing a harder variation to keep it achievable.
    - Introduce fun variations or complementary pairings in later steps (e.g., "+ 2 sets of Plow Raises").
-4. Keep steps concise, measurable, and formatted exactly like these examples:
-   - "2 sets of 30 reps (Bent knees)"
-   - "2 sets of 25 reps (Full range of motion)"
-   - "2 sets of 15 reps + 2 sets of Plow Raises"
-5. Keep the name of each step not too long but expressive and clear
+4. You MUST format the volume/repetition target of each step using the structure "[Sets Count] serie da [target reps/duration]" (Italian) or "[Sets Count] sets of [target reps/duration]" (English). Always place the sets count first. Examples:
+   - "Wall push-ups: 3 serie da 10 reps"
+   - "Plank: 3 serie da 45 sec"
+   - "Split Squat: 3 serie da 10 reps per gamba"
+   - "Push-ups eccentrico: 3 sets of 5 reps"
+5. Keep the name of each step not too long but expressive and clear.
 `.trim();
 
 /**

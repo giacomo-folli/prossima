@@ -9,6 +9,13 @@ export interface Step {
 	step_index: number;
 }
 
+export interface LoggedSet {
+	set_index: number;
+	completed: boolean;
+	reps?: number;
+	weight?: number;
+}
+
 /** Represents an exercise in a training program, including
  *  its ordered steps and current progress. */
 export interface Exercise {
@@ -18,6 +25,7 @@ export interface Exercise {
 	steps?: Step[];
 	current_step_index?: number;
 	type: ExerciseType;
+	logged_sets?: LoggedSet[];
 }
 
 /** Represents a completed training session with metadata and the
