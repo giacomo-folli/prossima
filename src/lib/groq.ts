@@ -280,3 +280,54 @@ export async function generateWeeklyTip(
 
 	return generateText(prompt, { temperature: DEFAULT_TEMPERATURE, maxOutputTokens: 256 });
 }
+
+export interface StepsEnhancementResult {
+	steps: string[];
+	rationale: string;
+}
+
+/**
+ * Enhances existing steps based on a user's instruction (e.g. make them easier/harder).
+ * Returns the updated list of steps and a rationale.
+ */
+export async function enhanceSteps(
+	exerciseName: string,
+	currentSteps: string[],
+	userIntent: string,
+): Promise<StepsEnhancementResult | null> {
+	const systemPrompt = `You are an expert fitness coach and personal trainer.
+Modify and enhance the steps of the exercise "${exerciseName}" based on the user's instructions.
+You must return a valid JSON object matching this schema:
+{
+  "steps": ["Enhanced step 1", "Enhanced step 2", "Enhanced step 3"],
+  "rationale": "A brief, one-sentence coaching explanation in the same language as the generated steps"
+}
+Ensure the output matches the language of the user instructions or original steps (defaulting to Italian).`;
+
+	const userPrompt = `Exercise: ${exerciseName}
+Current Steps:
+${currentSteps.map((s, idx) => `${idx + 1}. ${s}`).join("\n")}
+
+User request for enhancement: "${userIntent}"`;
+
+	try {
+		const raw = await generateText(`${systemPrompt}\n\nUser: ${userPrompt}`, {
+			temperature: 0.6,
+			maxOutputTokens: 1024,
+			responseFormat: { type: "json_object" },
+		});
+
+		let cleanRaw = raw.trim();
+		const firstBrace = cleanRaw.indexOf("{");
+		const lastBrace = cleanRaw.lastIndexOf("}");
+		if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+			cleanRaw = cleanRaw.substring(firstBrace, lastBrace + 1);
+		}
+
+		return JSON.parse(cleanRaw) as StepsEnhancementResult;
+	} catch (err) {
+		console.error("groq.enhanceSteps failed:", err);
+		return null;
+	}
+}
+
