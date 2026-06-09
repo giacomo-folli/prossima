@@ -3,6 +3,7 @@
 	import { updateUserProfile } from "$lib/utils/storage";
 	import Icon from "$lib/components/Icon.svelte";
 	import posthog from "posthog-js";
+	import { resolve } from "$app/paths";
 
 	let displayName = $state("");
 	let fullName = $state("");
@@ -10,12 +11,15 @@
 	let customAvatarUrl = $state("");
 
 	let saving = $state(false);
-	let statusMessage = $state<{ type: "success" | "error"; text: string } | null>(null);
+	let statusMessage = $state<{
+		type: "success" | "error";
+		text: string;
+	} | null>(null);
 
 	const avatars = [
-		"/avatars/avatar_1.png",
-		"/avatars/avatar_2.png",
-		"/avatars/avatar_3.png"
+		"/prossima/avatars/avatar_1.png",
+		"/prossima/avatars/avatar_2.png",
+		"/prossima/avatars/avatar_3.png",
 	];
 
 	let initialized = $state(false);
@@ -52,18 +56,24 @@
 			const updated = await updateUserProfile({
 				display_name: displayName.trim(),
 				full_name: fullName.trim(),
-				avatar_url: avatarUrl.trim() || undefined
+				avatar_url: avatarUrl.trim() || undefined,
 			});
 
 			if (updated) {
-				user.update(u => u ? { ...u, ...updated } : null);
-				statusMessage = { type: "success", text: "Profilo aggiornato con successo!" };
+				user.update((u) => (u ? { ...u, ...updated } : null));
+				statusMessage = {
+					type: "success",
+					text: "Profilo aggiornato con successo!",
+				};
 				posthog.capture("profile_updated_successfully");
 				setTimeout(() => {
 					statusMessage = null;
 				}, 4000);
 			} else {
-				statusMessage = { type: "error", text: "Errore durante l'aggiornamento. Riprova." };
+				statusMessage = {
+					type: "error",
+					text: "Errore durante l'aggiornamento. Riprova.",
+				};
 			}
 		} catch (error) {
 			console.error("Save profile error:", error);
@@ -75,7 +85,7 @@
 </script>
 
 <main class="page profile-edit-page">
-	<a href="/settings" class="nav-back">
+	<a href={resolve("/settings")} class="nav-back">
 		<Icon name="chevron-left" size={20} />
 		Impostazioni
 	</a>
@@ -87,7 +97,10 @@
 
 	{#if statusMessage}
 		<div class="status-banner {statusMessage.type}" role="alert">
-			<Icon name={statusMessage.type === 'success' ? 'circle-check' : 'info'} size={18} />
+			<Icon
+				name={statusMessage.type === "success" ? "circle-check" : "info"}
+				size={18}
+			/>
 			<span>{statusMessage.text}</span>
 		</div>
 	{/if}
@@ -110,7 +123,13 @@
 	</div>
 
 	<!-- Profile Form -->
-	<form onsubmit={(e) => { e.preventDefault(); handleSave(); }} class="profile-form">
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleSave();
+		}}
+		class="profile-form"
+	>
 		<p class="section-label">Informazioni Personali</p>
 		<div class="group">
 			<div class="form-row">
@@ -180,7 +199,9 @@
 			</div>
 
 			<div class="custom-url-row">
-				<label for="custom_avatar" class="field-label">O usa un URL personalizzato</label>
+				<label for="custom_avatar" class="field-label"
+					>O usa un URL personalizzato</label
+				>
 				<input
 					type="url"
 					id="custom_avatar"
@@ -388,7 +409,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
 		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 	}
 
@@ -457,6 +481,8 @@
 	}
 
 	@keyframes spin {
-		to { transform: rotate(360deg); }
+		to {
+			transform: rotate(360deg);
+		}
 	}
 </style>
