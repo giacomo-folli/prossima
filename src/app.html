@@ -27,6 +27,20 @@
   <meta property="og:url" content="https://giacomo-folli.github.io/prossima/">
   <meta property="og:image" content="https://giacomo-folli.github.io/prossima/icon-512.png">
 
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('theme') || 'auto';
+        var isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   %sveltekit.head%
 </head>
 

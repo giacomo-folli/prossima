@@ -47,6 +47,22 @@
 			}
 		};
 
+		const syncTheme = () => {
+			const savedTheme = localStorage.getItem("theme") || "auto";
+			const isDark =
+				savedTheme === "dark" ||
+				(savedTheme === "auto" &&
+					window.matchMedia("(prefers-color-scheme: dark)").matches);
+			document.documentElement.classList.toggle("dark", isDark);
+		};
+
+		syncTheme();
+
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+		mediaQuery.addEventListener("change", syncTheme);
+		window.addEventListener("storage", syncTheme);
+		window.addEventListener("theme-changed", syncTheme);
+
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			handleAuthRedirect(session);
 
@@ -78,6 +94,9 @@
 		return () => {
 			subscription.unsubscribe();
 			$user = null;
+			mediaQuery.removeEventListener("change", syncTheme);
+			window.removeEventListener("storage", syncTheme);
+			window.removeEventListener("theme-changed", syncTheme);
 		};
 	});
 

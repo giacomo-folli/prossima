@@ -5,8 +5,31 @@
 	import { supabase } from "$lib/supabase";
 	import posthog from "posthog-js";
 	import Icon from "$lib/components/Icon.svelte";
+	import { onMount } from "svelte";
+	import { resolve } from "$app/paths";
 
 	let loading = $state(false);
+	let theme = $state("auto");
+
+	onMount(() => {
+		theme = localStorage.getItem("theme") || "auto";
+	});
+
+	function cycleTheme() {
+		let nextTheme = "auto";
+		if (theme === "auto") nextTheme = "light";
+		else if (theme === "light") nextTheme = "dark";
+		else if (theme === "dark") nextTheme = "auto";
+
+		theme = nextTheme;
+		localStorage.setItem("theme", nextTheme);
+		window.dispatchEvent(new Event("theme-changed"));
+		posthog.capture("theme_changed", { theme: nextTheme });
+	}
+
+	const themeLabel = $derived(
+		theme === "light" ? "Chiaro" : theme === "dark" ? "Scuro" : "Automatico",
+	);
 
 	async function handleLogout() {
 		loading = true;
@@ -43,7 +66,7 @@
 
 <main class="page settings-page">
 	<!-- Profile header -->
-	<a href="/settings/profile" class="profile-header">
+	<a href={resolve("/settings/profile")} class="profile-header">
 		{#if $user?.avatar_url}
 			<img src={$user.avatar_url} alt="Avatar" class="avatar avatar-img" />
 		{:else}
@@ -52,7 +75,7 @@
 			</div>
 		{/if}
 		<div class="profile-info">
-			<p class="profile-name">{$user?.display_name || 'Utente'}</p>
+			<p class="profile-name">{$user?.display_name || "Utente"}</p>
 			<p class="profile-email">{$user?.email}</p>
 		</div>
 		<Icon name="chevron-right" size={16} class="profile-chevron" />
@@ -61,41 +84,39 @@
 	<!-- Aspetto -->
 	<p class="section-label">Aspetto</p>
 	<div class="group">
-		<div class="row row--tappable">
+		<button type="button" class="row row--tappable" onclick={cycleTheme}>
 			<span class="row-icon" style="background: #8e8e93">
 				<Icon name="moon" size={16} />
 			</span>
 			<span class="row-label">Tema</span>
-			<span class="row-value">Automatico</span>
+			<span class="row-value">{themeLabel}</span>
 			<Icon name="chevron-right" size={14} class="chevron" />
-		</div>
-		<div class="row row--tappable">
+		</button>
+		<!-- <div class="row row--tappable">
 			<span class="row-icon" style="background: #32ade6">
 				<Icon name="language" size={16} />
 			</span>
 			<span class="row-label">Lingua</span>
 			<span class="row-value">Italiano</span>
 			<Icon name="chevron-right" size={14} class="chevron" />
-		</div>
+		</div> -->
 	</div>
 
 	<!-- Supporto -->
 	<p class="section-label">Supporto</p>
 	<div class="group">
-		<div class="row row--tappable">
-			<span class="row-icon" style="background: #007aff">
-				<Icon name="help" size={16} />
-			</span>
-			<span class="row-label">Guida &amp; FAQ</span>
-			<Icon name="chevron-right" size={14} class="chevron" />
-		</div>
-		<div class="row row--tappable">
+		<button
+			type="button"
+			class="row row--tappable"
+			onclick={() =>
+				alert("Il supporto è quel gay di gepy, mandagli un messaggio")}
+		>
 			<span class="row-icon" style="background: #5856d6">
 				<Icon name="message" size={16} />
 			</span>
 			<span class="row-label">Contatta il supporto</span>
 			<Icon name="chevron-right" size={14} class="chevron" />
-		</div>
+		</button>
 		<div class="row">
 			<span class="row-icon" style="background: #8e8e93">
 				<Icon name="info" size={16} />
