@@ -56,7 +56,6 @@
 	.modal-backdrop {
 		position: fixed;
 		inset: 0;
-		background: var(--color-overlay);
 		display: flex;
 		align-items: flex-end;
 		justify-content: center;
@@ -76,7 +75,7 @@
 		max-width: 480px;
 		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 		padding: 0;
-		box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.12);
+		box-shadow: 0 -12px 44px rgba(0, 0, 0, 0.24);
 		animation: slide-up 0.24s cubic-bezier(0.32, 1.2, 0.6, 1);
 		overflow: hidden;
 		font-size: 16px;
