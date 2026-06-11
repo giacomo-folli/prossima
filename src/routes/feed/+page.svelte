@@ -59,9 +59,21 @@
 		if (diff === 1) return "ieri";
 		return `${diff} giorni fa`;
 	}
+
+	function getUserHue(userId: string): number {
+		const id = userId || "";
+		let hash = 2166136261;
+		for (let i = 0; i < id.length; i++) {
+			hash ^= id.charCodeAt(i);
+			hash = Math.imul(hash, 16777619);
+		}
+		// Scatter consecutive/similar values using the golden ratio conjugate
+		const h = Math.abs(hash) * 0.618033988749895;
+		return Math.floor((h % 1) * 360);
+	}
 </script>
 
-<main class="page admin-page">
+<main class="page feed-page">
 	<div class="top-bar">
 		<a href={resolve("/home")} class="nav-back">
 			<Icon name="chevron-left" size={20} />
@@ -79,8 +91,8 @@
 	</div>
 
 	<header class="page-header">
-		<p class="page-subtitle">Pannello di controllo</p>
-		<h1 class="large-title">Dashboard Admin</h1>
+		<p class="page-subtitle">Community</p>
+		<h1 class="large-title">Feed</h1>
 	</header>
 
 	{#if loading && sessions.length === 0}
@@ -106,7 +118,7 @@
 	{:else}
 		<div class="sessions-container">
 			{#each sessions as session (session.id)}
-				<div class="session-card ios-card">
+				<div class="session-card ios-card" style="--user-hue: {getUserHue(session.user_id)}">
 					<div class="session-user">
 						{#if session.avatar_url}
 							<img
@@ -184,7 +196,7 @@
 </main>
 
 <style>
-	.admin-page {
+	.feed-page {
 		display: flex;
 		flex-direction: column;
 		gap: 1.25rem;
@@ -312,6 +324,22 @@
 		gap: 16px;
 		padding: 18px;
 		border: 1px solid var(--color-border);
+		background: linear-gradient(
+			135deg,
+			hsl(var(--user-hue, 200), 45%, 97%) 0%,
+			hsl(var(--user-hue, 200), 35%, 98%) 100%
+		);
+		border-color: hsl(var(--user-hue, 200), 40%, 90%);
+		transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+	}
+
+	:global(html.dark) .session-card {
+		background: linear-gradient(
+			135deg,
+			hsl(var(--user-hue, 200), 30%, 11%) 0%,
+			hsl(var(--user-hue, 200), 20%, 9%) 100%
+		);
+		border-color: hsl(var(--user-hue, 200), 25%, 19%);
 	}
 
 	/* User profile header */
@@ -330,6 +358,11 @@
 		align-items: center;
 		justify-content: center;
 		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+		border: 2px solid hsl(var(--user-hue, 200), 50%, 65%);
+	}
+
+	:global(html.dark) .user-avatar {
+		border-color: hsl(var(--user-hue, 200), 45%, 55%);
 	}
 
 	.img-avatar {
@@ -337,7 +370,7 @@
 	}
 
 	.initials-avatar {
-		background: var(--color-accent);
+		background: hsl(var(--user-hue, 200), 55%, 45%);
 		color: white;
 		font-size: 16px;
 		font-weight: 700;
@@ -388,17 +421,26 @@
 	.session-notes {
 		display: flex;
 		gap: 8px;
-		background: var(--color-bg);
+		background: hsl(var(--user-hue, 200), 40%, 94%);
 		padding: 10px 12px;
 		border-radius: 10px;
 		align-items: flex-start;
-		border-left: 3px solid var(--color-accent);
+		border-left: 3px solid hsl(var(--user-hue, 200), 55%, 45%);
+	}
+
+	:global(html.dark) .session-notes {
+		background: hsl(var(--user-hue, 200), 20%, 8%);
+		border-left-color: hsl(var(--user-hue, 200), 45%, 45%);
 	}
 
 	:global(.notes-icon) {
-		color: var(--color-accent);
+		color: hsl(var(--user-hue, 200), 55%, 42%);
 		margin-top: 2px;
 		opacity: 0.8;
+	}
+
+	:global(html.dark) :global(.notes-icon) {
+		color: hsl(var(--user-hue, 200), 45%, 65%);
 	}
 
 	.notes-text {
@@ -436,10 +478,15 @@
 		align-items: center;
 		gap: 8px;
 		padding: 6px 10px;
-		background: var(--color-bg);
+		background: hsl(var(--user-hue, 200), 30%, 94%);
 		border-radius: 10px;
-		border: 1px solid var(--color-border);
+		border: 1px solid hsl(var(--user-hue, 200), 35%, 88%);
 		max-width: 100%;
+	}
+
+	:global(html.dark) .exercise-chip {
+		background: hsl(var(--user-hue, 200), 20%, 7%);
+		border-color: hsl(var(--user-hue, 200), 20%, 15%);
 	}
 
 	.exercise-chip.quick {
@@ -459,10 +506,14 @@
 	}
 
 	.ex-icon-svg {
-		color: var(--color-muted);
+		color: hsl(var(--user-hue, 200), 55%, 42%);
 		display: flex;
 		align-items: center;
 		flex-shrink: 0;
+	}
+
+	:global(html.dark) .ex-icon-svg {
+		color: hsl(var(--user-hue, 200), 45%, 65%);
 	}
 
 	.ex-info {
