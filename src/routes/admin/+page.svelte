@@ -28,7 +28,8 @@
 			const { data, error } = await supabase.rpc("get_admin_sessions");
 			if (error) {
 				console.error("Errore nel caricamento delle sessioni admin:", error);
-				errorMsg = "Impossibile caricare le sessioni. Assicurati di aver eseguito le migrazioni del database.";
+				errorMsg =
+					"Impossibile caricare le sessioni. Assicurati di aver eseguito le migrazioni del database.";
 			} else {
 				sessions = data || [];
 			}
@@ -45,13 +46,14 @@
 	});
 
 	function formatDate(isoString: string): string {
-		return DateTime.fromISO(isoString).setLocale('it').toFormat("d LLL yyyy, HH:mm");
+		return DateTime.fromISO(isoString)
+			.setLocale("it")
+			.toFormat("d LLL yyyy, HH:mm");
 	}
 
 	function getDaysAgo(isoString: string): string {
 		const diff = Math.floor(
-			(Date.now() - new Date(isoString).getTime()) /
-				(1000 * 60 * 60 * 24),
+			(Date.now() - new Date(isoString).getTime()) / (1000 * 60 * 60 * 24),
 		);
 		if (diff === 0) return "oggi";
 		if (diff === 1) return "ieri";
@@ -65,7 +67,12 @@
 			<Icon name="chevron-left" size={20} />
 			Home
 		</a>
-		<button class="refresh-btn btn-secondary" onclick={fetchSessions} disabled={loading} aria-label="Aggiorna sessioni">
+		<button
+			class="refresh-btn btn-secondary"
+			onclick={fetchSessions}
+			disabled={loading}
+			aria-label="Aggiorna sessioni"
+		>
 			<Icon name="refresh" size={16} class={loading ? "spin" : ""} />
 			<span>Aggiorna</span>
 		</button>
@@ -86,7 +93,9 @@
 			<Icon name="info" size={20} />
 			<div class="error-content">
 				<p class="error-text">{errorMsg}</p>
-				<button class="btn btn-secondary btn-retry" onclick={fetchSessions}>Riprova</button>
+				<button class="btn btn-secondary btn-retry" onclick={fetchSessions}
+					>Riprova</button
+				>
 			</div>
 		</div>
 	{:else if sessions.length === 0}
@@ -100,15 +109,25 @@
 				<div class="session-card ios-card">
 					<div class="session-user">
 						{#if session.avatar_url}
-							<img src={session.avatar_url} alt="Avatar" class="user-avatar img-avatar" />
+							<img
+								src={session.avatar_url}
+								alt="Avatar"
+								class="user-avatar img-avatar"
+							/>
 						{:else}
 							<div class="user-avatar initials-avatar">
-								{(session.display_name || session.full_name || "?").charAt(0).toUpperCase()}
+								{(session.display_name || session.full_name || "?")
+									.charAt(0)
+									.toUpperCase()}
 							</div>
 						{/if}
 						<div class="user-details">
 							<div class="user-name-row">
-								<span class="user-name">{session.display_name || session.full_name || "Utente Anonimo"}</span>
+								<span class="user-name"
+									>{session.display_name ||
+										session.full_name ||
+										"Utente Anonimo"}</span
+								>
 								{#if session.liked}
 									<span class="liked-badge" title="Sessione piaciuta">
 										<Icon name="heart" size={14} class="liked-icon" />
@@ -116,7 +135,10 @@
 								{/if}
 							</div>
 							<span class="session-time">
-								{formatDate(session.completed_at)} <span class="time-ago">({getDaysAgo(session.completed_at)})</span>
+								{formatDate(session.completed_at)}
+								<span class="time-ago"
+									>({getDaysAgo(session.completed_at)})</span
+								>
 							</span>
 						</div>
 					</div>
@@ -129,12 +151,17 @@
 					{/if}
 
 					<div class="exercises-section">
-						<span class="section-label">Esercizi ({session.exercises.length})</span>
+						<span class="section-label"
+							>Esercizi ({session.exercises.length})</span
+						>
 						<div class="exercises-list">
 							{#each session.exercises as ex}
-								<div class="exercise-chip" class:quick={ex.type === 'quick_exercise'}>
-									{#if ex.type === 'quick_exercise'}
-										<span class="ex-icon">{ex.icon || '⚡'}</span>
+								<div
+									class="exercise-chip"
+									class:quick={ex.type === "quick_exercise"}
+								>
+									{#if ex.type === "quick_exercise"}
+										<span class="ex-icon">{ex.icon || "⚡"}</span>
 									{:else}
 										<span class="ex-icon-svg">
 											<Icon name="dumbbell" size={12} />
