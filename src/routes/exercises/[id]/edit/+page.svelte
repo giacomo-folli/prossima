@@ -6,6 +6,7 @@
 	import Icon from "$lib/components/Icon.svelte";
 	import posthog from "posthog-js";
 	import { enhanceSteps } from "$lib/groq";
+	import Modal from "$lib/components/Modal.svelte";
 
 	const id = page.params.id!;
 	let exercise = $state($exercises.find((e) => e.id === id));
@@ -282,72 +283,57 @@
 	</div>
 
 	<!-- AI Enhance Modal -->
-	{#if showEnhanceModal}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal-backdrop" onclick={(e) => { if (e.target === e.currentTarget) closeEnhance(); }} role="presentation">
-			<div class="modal ios-card" role="dialog" aria-modal="true" aria-labelledby="enhance-modal-title">
-				<div class="drag-handle"></div>
+	<Modal bind:showModal={showEnhanceModal} title="Migliora con AI">
+		<div slot="body">
+			<p class="enhance-intro">
+				Spiega come vuoi modificare gli step (es. "rendi gli esercizi più facili per principianti" o "crea un circuito più intenso").
+			</p>
 
-				<div class="modal-header">
-					<h2 id="enhance-modal-title">Migliora con AI</h2>
-					<button class="close-btn" onclick={closeEnhance} aria-label="Chiudi">
-						<Icon name="x" size={18} />
-					</button>
-				</div>
-
-				<div class="modal-body">
-					<p class="enhance-intro">
-						Spiega come vuoi modificare gli step (es. "rendi gli esercizi più facili per principianti" o "crea un circuito più intenso").
-					</p>
-
-					<div class="field">
-						<textarea
-							bind:value={enhanceQuery}
-							rows="3"
-							placeholder="es. Rendi più facile, aggiungi un circuito di defaticamento, ecc..."
-							class:input-error={!!enhanceError}
-							disabled={enhancing}
-						></textarea>
-						{#if enhanceError}<span class="field-error">{enhanceError}</span>{/if}
-					</div>
-
-					{#if previewSteps.length > 0}
-						<div class="preview-section">
-							<span class="ios-section-label">Anteprima dei nuovi step</span>
-							{#if previewRationale}
-								<p class="preview-rationale">💡 {previewRationale}</p>
-							{/if}
-							<div class="preview-list">
-								{#each previewSteps as pStep, pIdx}
-									<div class="preview-item">
-										<span class="preview-badge">{pIdx + 1}</span>
-										<span class="preview-desc">{pStep}</span>
-									</div>
-								{/each}
-							</div>
-						</div>
-					{/if}
-				</div>
-
-				<div class="modal-footer">
-					{#if previewSteps.length > 0}
-						<button class="btn btn--secondary" onclick={closeEnhance} disabled={enhancing}>Annulla</button>
-						<button class="btn btn--primary" onclick={applyEnhancement} disabled={enhancing}>Applica</button>
-					{:else}
-						<button class="btn btn--secondary" onclick={closeEnhance} disabled={enhancing}>Annulla</button>
-						<button class="premium-ai-btn" onclick={generateEnhancement} disabled={enhancing || !enhanceQuery.trim()}>
-							{#if enhancing}
-								<span class="spinner white-spinner"></span> Elaborazione...
-							{:else}
-								<Icon name="zap" size={14} /> Genera modifiche
-							{/if}
-						</button>
-					{/if}
-				</div>
+			<div class="field">
+				<textarea
+					bind:value={enhanceQuery}
+					rows="3"
+					placeholder="es. Rendi più facile, aggiungi un circuito di defaticamento, ecc..."
+					class:input-error={!!enhanceError}
+					disabled={enhancing}
+				></textarea>
+				{#if enhanceError}<span class="field-error">{enhanceError}</span>{/if}
 			</div>
+
+			{#if previewSteps.length > 0}
+				<div class="preview-section">
+					<span class="ios-section-label">Anteprima dei nuovi step</span>
+					{#if previewRationale}
+						<p class="preview-rationale">💡 {previewRationale}</p>
+					{/if}
+					<div class="preview-list">
+						{#each previewSteps as pStep, pIdx}
+							<div class="preview-item">
+								<span class="preview-badge">{pIdx + 1}</span>
+								<span class="preview-desc">{pStep}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
-	{/if}
+
+		<div slot="footer" let:closeModal>
+			{#if previewSteps.length > 0}
+				<button class="btn btn--secondary" onclick={closeModal} disabled={enhancing}>Annulla</button>
+				<button class="btn btn--primary" onclick={applyEnhancement} disabled={enhancing}>Applica</button>
+			{:else}
+				<button class="btn btn--secondary" onclick={closeModal} disabled={enhancing}>Annulla</button>
+				<button class="premium-ai-btn" onclick={generateEnhancement} disabled={enhancing || !enhanceQuery.trim()}>
+					{#if enhancing}
+						<span class="spinner white-spinner"></span> Elaborazione...
+					{:else}
+						<Icon name="zap" size={14} /> Genera modifiche
+					{/if}
+				</button>
+			{/if}
+		</div>
+	</Modal>
 {:else}
 	<div class="page">
 		<p>Esercizio non trovato.</p>
@@ -689,98 +675,6 @@
 	}
 
 	/* ── Reuse Modal Layout Styles ── */
-	.modal-backdrop {
-		position: fixed;
-		inset: 0;
-		background: var(--color-overlay);
-		display: flex;
-		align-items: flex-end;
-		justify-content: center;
-		z-index: 100;
-		animation: fade-in 0.18s ease;
-	}
-
-	@media (min-width: 520px) {
-		.modal-backdrop {
-			align-items: center;
-			padding: 1rem;
-		}
-	}
-
-	.modal {
-		width: 100%;
-		max-width: 480px;
-		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-		padding: 0;
-		box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.12);
-		animation: slide-up 0.24s cubic-bezier(0.32, 1.2, 0.6, 1);
-		overflow: hidden;
-		font-size: 16px;
-		background: var(--color-card);
-	}
-
-	@media (min-width: 520px) {
-		.modal {
-			border-radius: var(--radius-lg);
-			box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
-			animation: pop-in 0.22s cubic-bezier(0.32, 1.2, 0.6, 1);
-		}
-	}
-
-	.drag-handle {
-		width: 36px;
-		height: 4px;
-		border-radius: 2px;
-		background: var(--color-track);
-		margin: 0.75rem auto 0;
-	}
-
-	@media (min-width: 520px) {
-		.drag-handle {
-			display: none;
-		}
-	}
-
-	.modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 1rem 1.125rem 0;
-	}
-
-	.modal-header h2 {
-		margin: 0;
-		font-size: 1.05rem;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		color: var(--color-text);
-	}
-
-	.close-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 1.9rem;
-		height: 1.9rem;
-		border-radius: 50%;
-		background: var(--color-track);
-		color: var(--color-muted);
-		font-size: 0.95rem;
-		padding: 0;
-		transition: opacity 0.15s;
-	}
-
-	.close-btn:hover {
-		opacity: 0.7;
-	}
-
-	.modal-body {
-		padding: 1rem 1.125rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
 	.field {
 		display: flex;
 		flex-direction: column;
@@ -813,18 +707,6 @@
 
 	.field textarea.input-error {
 		border-color: var(--color-danger);
-	}
-
-	.modal-footer {
-		display: flex;
-		gap: 0.6rem;
-		padding: 0 1.125rem 1.25rem;
-	}
-
-	.modal-footer .btn {
-		flex: 1;
-		text-align: center;
-		border-radius: var(--radius-card);
 	}
 
 	.premium-ai-btn {

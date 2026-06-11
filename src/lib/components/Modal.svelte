@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from "$lib/components/Icon.svelte";
+	import { portal } from "$lib/utils/portal";
 
 	export let showModal = false;
 	export let title = "";
@@ -25,7 +26,7 @@
 {#if showModal}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="modal-backdrop" on:click={handleBackdropClick}>
+	<div use:portal class="modal-backdrop" on:click={handleBackdropClick}>
 		<div
 			class="modal ios-card"
 			role="dialog"

@@ -286,7 +286,7 @@
 		background: var(--color-track);
 		border-radius: var(--radius-card);
 		padding: 3px;
-		margin-bottom: 0.25rem;
+		margin-block: 0.5rem;
 	}
 
 	.segment-btn {
@@ -343,6 +343,7 @@
 		cursor: pointer;
 		transition: all 0.2s ease;
 		box-shadow: 0 4px 12px rgba(45, 106, 79, 0.25);
+		margin-bottom: 1rem;
 	}
 
 	.premium-ai-btn:hover:not(:disabled) {

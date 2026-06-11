@@ -120,6 +120,8 @@
 	{/if}
 </div>
 
+<div id="modal-portal-target"></div>
+
 <style>
 	.shell {
 		max-width: 960px;
