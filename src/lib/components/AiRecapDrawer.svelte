@@ -74,7 +74,7 @@
 			result &&
 			result.summary &&
 			Array.isArray(result.suggestions) &&
-			result.suggestions.length === 3
+			result.suggestions.length === 2
 		) {
 			recap = result;
 			loading = false;
@@ -170,7 +170,6 @@
 	.skeleton {
 		background: var(--color-track);
 		border-radius: var(--radius-card);
-		opacity: 0.6;
 		animation: pulse 1.5s infinite ease-in-out;
 	}
 
@@ -330,21 +329,6 @@
 	.suggestion-icon-wrap.icon-2 {
 		background: rgba(0, 122, 255, 0.08);
 		color: #007aff;
-	}
-
-	:global(html.dark) .suggestion-icon-wrap.icon-0 {
-		background: rgba(82, 183, 136, 0.15);
-		color: var(--color-accent-light);
-	}
-
-	:global(html.dark) .suggestion-icon-wrap.icon-1 {
-		background: rgba(255, 69, 58, 0.15);
-		color: var(--color-danger);
-	}
-
-	:global(html.dark) .suggestion-icon-wrap.icon-2 {
-		background: rgba(10, 132, 255, 0.15);
-		color: #0a84ff;
 	}
 
 	.suggestion-content {
