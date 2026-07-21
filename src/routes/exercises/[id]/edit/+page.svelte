@@ -7,6 +7,12 @@
 	import posthog from "posthog-js";
 	import { enhanceSteps } from "$lib/groq";
 	import Modal from "$lib/components/Modal.svelte";
+	import {
+		loadExerciseLibrary,
+		searchExerciseTemplates,
+	} from "$lib/utils/exercise-library";
+	import { EXERCISE_CATEGORY_LABELS_IT } from "$lib/constants";
+	import type { ExerciseTemplate } from "$lib/types";
 
 	const id = page.params.id!;
 	let exercise = $state($exercises.find((e) => e.id === id));
@@ -27,12 +33,63 @@
 		completed_at?: string;
 	}>>([]);
 
+	// Gif dimostrativa: memorizzata nel campo `icon` come URL
+	let gifUrl = $state<string | null>(null);
+	let gifInitialized = $state(false);
+
 	$effect(() => {
 		if (exercise && name === "" && steps.length === 0) {
 			name = exercise.name;
 			steps = (exercise.steps ?? []).map((s) => ({ ...s }));
 		}
+		if (exercise && !gifInitialized) {
+			gifUrl = exercise.icon?.startsWith("http") ? exercise.icon : null;
+			gifInitialized = true;
+		}
 	});
+
+	// Ricerca gif dal catalogo esercizi
+	let gifLibrary = $state<ExerciseTemplate[]>([]);
+	let gifQuery = $state("");
+	let gifSuggestions = $state<ExerciseTemplate[]>([]);
+	let showGifSuggestions = $state(false);
+
+	function categoryLabel(category: string): string {
+		return EXERCISE_CATEGORY_LABELS_IT[category] ?? category;
+	}
+
+	function capitalize(text: string): string {
+		return text.charAt(0).toUpperCase() + text.slice(1);
+	}
+
+	function onGifSearch() {
+		if (gifLibrary.length === 0) {
+			loadExerciseLibrary().then((data) => {
+				gifLibrary = data;
+				onGifSearch();
+			});
+			return;
+		}
+		const q = gifQuery.trim();
+		if (q.length < 2) {
+			gifSuggestions = [];
+			showGifSuggestions = false;
+			return;
+		}
+		gifSuggestions = searchExerciseTemplates(gifLibrary, q).slice(0, 8);
+		showGifSuggestions = gifSuggestions.length > 0;
+	}
+
+	function pickGif(template: ExerciseTemplate) {
+		gifUrl = template.gif_url;
+		gifQuery = "";
+		gifSuggestions = [];
+		showGifSuggestions = false;
+	}
+
+	function removeGif() {
+		gifUrl = null;
+	}
 
 	let nameError = $state("");
 	let stepsError = $state("");
@@ -164,7 +221,7 @@
 			completed_at: s.completed_at,
 		}));
 
-		const success = await exercises.updateExercise(id, name.trim(), cleanSteps);
+		const success = await exercises.updateExercise(id, name.trim(), cleanSteps, gifUrl);
 		saving = false;
 
 		if (success) {
@@ -209,6 +266,66 @@
 					/>
 					{#if nameError}<span class="field-error">{nameError}</span>{/if}
 				</div>
+			</section>
+
+			<section class="section">
+				<span class="ios-section-label">Gif dimostrativa</span>
+
+				{#if gifUrl}
+					<div class="ios-card gif-card">
+						<img class="gif-thumb" src={gifUrl} alt={name} loading="lazy" />
+						<span class="gif-hint">Gif collegata all'esercizio</span>
+						<button
+							type="button"
+							class="action-btn remove-btn"
+							onclick={removeGif}
+							title="Rimuovi gif"
+							aria-label="Rimuovi gif"
+						>
+							<Icon name="trash" size={18} />
+						</button>
+					</div>
+				{:else}
+					<div class="gif-autocomplete">
+						<div class="ios-card field-card">
+							<input
+								type="text"
+								bind:value={gifQuery}
+								oninput={onGifSearch}
+								onfocus={onGifSearch}
+								placeholder="Cerca un esercizio per collegare la gif…"
+								autocomplete="off"
+							/>
+						</div>
+
+						{#if showGifSuggestions}
+							<ul class="gif-suggestions ios-card">
+								{#each gifSuggestions as s (s.id)}
+									<li>
+										<button
+											type="button"
+											class="gif-suggestion"
+											onclick={() => pickGif(s)}
+										>
+											<img
+												class="gif-suggestion-thumb"
+												src={s.image_url}
+												alt=""
+												loading="lazy"
+											/>
+											<span class="gif-suggestion-text">
+												<span class="gif-suggestion-name">{capitalize(s.name)}</span>
+												<span class="gif-suggestion-meta">
+													{categoryLabel(s.category)} · {s.target}
+												</span>
+											</span>
+										</button>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</div>
+				{/if}
 			</section>
 
 			<section class="section">
@@ -438,6 +555,94 @@
 		font-size: 13px;
 		color: var(--color-danger);
 		margin-top: 6px;
+	}
+
+	/* ── Gif dimostrativa ── */
+	.gif-card {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 14px;
+	}
+
+	.gif-thumb {
+		width: 56px;
+		height: 56px;
+		flex-shrink: 0;
+		border-radius: 10px;
+		object-fit: cover;
+		background: var(--color-track);
+	}
+
+	.gif-hint {
+		flex: 1;
+		font-size: 15px;
+		color: var(--color-text);
+	}
+
+	.gif-autocomplete {
+		position: relative;
+	}
+
+	.gif-suggestions {
+		position: absolute;
+		top: calc(100% + 4px);
+		left: 0;
+		right: 0;
+		z-index: 20;
+		margin: 0;
+		padding: 4px;
+		list-style: none;
+		max-height: 260px;
+		overflow-y: auto;
+	}
+
+	.gif-suggestion {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		width: 100%;
+		padding: 0.4rem 0.5rem;
+		border: none;
+		background: transparent;
+		border-radius: 10px;
+		cursor: pointer;
+		text-align: left;
+	}
+
+	.gif-suggestion:hover,
+	.gif-suggestion:focus-visible {
+		background: var(--color-track);
+	}
+
+	.gif-suggestion-thumb {
+		width: 40px;
+		height: 40px;
+		flex-shrink: 0;
+		border-radius: 8px;
+		object-fit: cover;
+		background: var(--color-track);
+	}
+
+	.gif-suggestion-text {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.gif-suggestion-name {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--color-text);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.gif-suggestion-meta {
+		font-size: 0.75rem;
+		color: var(--color-muted);
+		text-transform: capitalize;
 	}
 
 	.steps-error-msg {

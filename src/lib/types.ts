@@ -44,3 +44,21 @@ export interface UserProfile {
 	full_name?: string;
 	avatar_url?: string;
 }
+
+/** Esercizio del catalogo di riferimento (dataset esterno, read-only).
+ *  Concetto distinto da `Exercise`: non ha progressione né appartiene all'utente,
+ *  serve come template/vocabolario da cui derivare gli esercizi tracciati.
+ *  Fonte: hasaneyldrm/exercises-dataset — media © Gym Visual (hotlink). */
+export interface ExerciseTemplate {
+	id: string;
+	name: string;
+	category: string; // parte del corpo (es. "waist", "chest")
+	equipment: string; // es. "body weight"
+	target: string; // muscolo primario
+	muscle_group?: string;
+	secondary_muscles?: string[];
+	instructions: string[]; // step in italiano (fallback inglese)
+	image_url: string; // URL raw GitHub completo (hotlink)
+	gif_url: string; // URL raw GitHub completo (hotlink)
+	attribution: string;
+}

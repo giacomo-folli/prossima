@@ -241,11 +241,12 @@ export async function updateTrainingSession(
 export async function insertExercise(
 	name: string,
 	stepDescriptions: string[],
+	icon?: string,
 ): Promise<Exercise | null> {
 	try {
 		const { data: exercise, error: exerciseError } = await supabase
 			.from("exercises")
-			.insert({ name, type: "exercise", current_step_index: 0 })
+			.insert({ name, type: "exercise", current_step_index: 0, icon: icon ?? null })
 			.select("id, name, icon, type, current_step_index")
 			.single();
 
@@ -305,6 +306,7 @@ export async function updateExerciseInDB(
 	exerciseId: string,
 	name: string,
 	steps: Array<{ id?: string; description: string; step_index: number; completed: boolean; completed_at?: string }>,
+	icon?: string | null,
 ): Promise<boolean> {
 	try {
 		// 1. Fetch current steps to find which ones were deleted
@@ -351,10 +353,13 @@ export async function updateExerciseInDB(
 			nextIndex = Math.max(0, newTotalSteps - 1);
 		}
 
-		// 3. Update the exercise name and current_step_index
+		// 3. Update the exercise name and current_step_index (and icon if provided)
+		const exercisePatch: Record<string, unknown> = { name, current_step_index: nextIndex };
+		if (icon !== undefined) exercisePatch.icon = icon;
+
 		const { error: exUpdateError } = await supabase
 			.from("exercises")
-			.update({ name, current_step_index: nextIndex })
+			.update(exercisePatch)
 			.eq("id", exerciseId);
 
 		if (exUpdateError) {

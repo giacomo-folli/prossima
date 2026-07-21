@@ -59,8 +59,9 @@ function createExercisesStore() {
 		async addExercise(
 			name: string,
 			stepDescriptions: string[],
+			icon?: string,
 		): Promise<boolean> {
-			const newExercise = await insertExercise(name, stepDescriptions);
+			const newExercise = await insertExercise(name, stepDescriptions, icon);
 			if (!newExercise) return false;
 			update((current) => [...current, newExercise]);
 			return true;
@@ -103,8 +104,9 @@ function createExercisesStore() {
 			exerciseId: string,
 			name: string,
 			steps: Array<{ id?: string; description: string; step_index: number; completed: boolean; completed_at?: string }>,
+			icon?: string | null,
 		): Promise<boolean> {
-			const success = await updateExerciseInDB(exerciseId, name, steps);
+			const success = await updateExerciseInDB(exerciseId, name, steps, icon);
 			if (success) {
 				set((await loadExercises()) || []);
 			}

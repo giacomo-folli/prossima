@@ -33,6 +33,11 @@
 	);
 	let hasCompleted = $derived((exercise?.steps ?? []).some((s) => s.completed));
 
+	// L'icona può contenere l'URL della gif dimostrativa (dal catalogo esercizi)
+	let gifUrl = $derived(
+		exercise?.icon?.startsWith("http") ? exercise.icon : null,
+	);
+
 	// Modal view control state triggers
 	let showDeleteConfirm = $state(false);
 
@@ -70,6 +75,12 @@
 				<Icon name="chevron-left" size={28} />
 			</a>
 		</div>
+
+		{#if gifUrl}
+			<div class="gif-wrap">
+				<img class="exercise-gif" src={gifUrl} alt={exercise.name} loading="lazy" />
+			</div>
+		{/if}
 
 		<header class="ex-header">
 			<div class="title-row">
@@ -169,6 +180,23 @@
 
 	.nav-back:active {
 		opacity: 0.6;
+	}
+
+	.gif-wrap {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+	}
+
+	.exercise-gif {
+		display: block;
+		width: 160px;
+		height: 160px;
+		object-fit: cover;
+		border-radius: 16px;
+		background: var(--color-card);
+		border: 1px solid var(--color-border);
 	}
 
 	.ex-header {

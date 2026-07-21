@@ -4,6 +4,12 @@
 	import { suggestExercise } from "$lib/groq";
 	import Icon from "$lib/components/Icon.svelte";
 	import { slide } from "svelte/transition";
+	import {
+		loadExerciseLibrary,
+		searchExerciseTemplates,
+	} from "$lib/utils/exercise-library";
+	import { EXERCISE_CATEGORY_LABELS_IT } from "$lib/constants";
+	import type { ExerciseTemplate } from "$lib/types";
 
 	export let showModal = false;
 
@@ -17,6 +23,50 @@
 	let goal = "";
 	let currentLevel = "";
 
+	// --- Autocomplete dal catalogo esercizi ---
+	let library: ExerciseTemplate[] = [];
+	let suggestions: ExerciseTemplate[] = [];
+	let showSuggestions = false;
+	let selectedTemplate: ExerciseTemplate | null = null;
+
+	// Carica il catalogo (una sola volta, con cache di modulo) all'apertura del modale
+	$: if (showModal && library.length === 0) {
+		loadExerciseLibrary().then((data) => (library = data));
+	}
+
+	function categoryLabel(category: string): string {
+		return EXERCISE_CATEGORY_LABELS_IT[category] ?? category;
+	}
+
+	function capitalize(text: string): string {
+		return text.charAt(0).toUpperCase() + text.slice(1);
+	}
+
+	function onNameInput() {
+		// Digitando manualmente il nome si scollega dal template selezionato
+		if (selectedTemplate && name.trim() !== capitalize(selectedTemplate.name)) {
+			selectedTemplate = null;
+		}
+		const q = name.trim();
+		if (q.length < 2) {
+			suggestions = [];
+			showSuggestions = false;
+			return;
+		}
+		suggestions = searchExerciseTemplates(library, q).slice(0, 8);
+		showSuggestions = suggestions.length > 0;
+	}
+
+	function pickTemplate(template: ExerciseTemplate) {
+		selectedTemplate = template;
+		name = capitalize(template.name);
+		suggestions = [];
+		showSuggestions = false;
+		nameError = "";
+		stepsError = "";
+		creationMode = "manual";
+	}
+
 	// Watch showModal manually to wipe inputs when toggled closed
 	$: if (!showModal) {
 		name = "";
@@ -26,6 +76,9 @@
 		creationMode = "manual";
 		nameError = "";
 		stepsError = "";
+		suggestions = [];
+		showSuggestions = false;
+		selectedTemplate = null;
 	}
 
 	async function generateStepsWithAI() {
@@ -97,7 +150,13 @@
 
 		if (!valid) return;
 
-		exercises.addExercise(name.trim(), steps);
+		// Se il nome combacia ancora col template selezionato, salvo la gif
+		const gif =
+			selectedTemplate && name.trim() === capitalize(selectedTemplate.name)
+				? selectedTemplate.gif_url
+				: undefined;
+
+		exercises.addExercise(name.trim(), steps, gif);
 		showModal = false; // Triggers automatic reset via reactive statement
 	}
 </script>
@@ -106,16 +165,72 @@
 	<div slot="body">
 		<div class="field">
 			<span class="ios-section-label">Nome</span>
-			<input
-				id="ex-name"
-				type="text"
-				bind:value={name}
-				placeholder="es. Squat, Plank…"
-				class:input-error={!!nameError}
-				autocomplete="off"
-			/>
+			<div class="autocomplete">
+				<input
+					id="ex-name"
+					type="text"
+					bind:value={name}
+					on:input={onNameInput}
+					on:focus={onNameInput}
+					placeholder="es. Squat, Plank…"
+					class:input-error={!!nameError}
+					autocomplete="off"
+					role="combobox"
+					aria-expanded={showSuggestions}
+					aria-controls="ex-suggestions"
+				/>
+
+				{#if showSuggestions}
+					<ul
+						id="ex-suggestions"
+						class="suggestions ios-card"
+						transition:slide={{ duration: 150 }}
+					>
+						{#each suggestions as s (s.id)}
+							<li>
+								<button
+									type="button"
+									class="suggestion"
+									on:click={() => pickTemplate(s)}
+								>
+									<img
+										class="suggestion-thumb"
+										src={s.image_url}
+										alt=""
+										loading="lazy"
+									/>
+									<span class="suggestion-text">
+										<span class="suggestion-name">{capitalize(s.name)}</span>
+										<span class="suggestion-meta">
+											{categoryLabel(s.category)} · {s.target}
+										</span>
+									</span>
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
 			{#if nameError}<span class="field-error">{nameError}</span>{/if}
 		</div>
+
+		{#if selectedTemplate}
+			<div class="template-preview ios-card" transition:slide={{ duration: 200 }}>
+				<img
+					class="preview-gif"
+					src={selectedTemplate.gif_url}
+					alt={selectedTemplate.name}
+					loading="lazy"
+				/>
+				<div class="preview-info">
+					<span class="preview-name">{capitalize(selectedTemplate.name)}</span>
+					<span class="preview-meta">
+						{categoryLabel(selectedTemplate.category)} · {selectedTemplate.equipment}
+					</span>
+					<span class="preview-attr">{selectedTemplate.attribution}</span>
+				</div>
+			</div>
+		{/if}
 
 		<div class="segmented-control">
 			<button
@@ -279,6 +394,121 @@
 	.field-error {
 		font-size: 0.75rem;
 		color: var(--color-danger);
+	}
+
+	/* --- Autocomplete --- */
+	.autocomplete {
+		position: relative;
+	}
+
+	.suggestions {
+		position: absolute;
+		top: calc(100% + 4px);
+		left: 0;
+		right: 0;
+		z-index: 20;
+		margin: 0;
+		padding: 4px;
+		list-style: none;
+		max-height: 260px;
+		overflow-y: auto;
+		background: var(--color-card);
+		border: 1px solid var(--color-border);
+		box-shadow: var(--shadow-card);
+	}
+
+	.suggestion {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		width: 100%;
+		padding: 0.4rem 0.5rem;
+		border: none;
+		background: transparent;
+		border-radius: 10px;
+		cursor: pointer;
+		text-align: left;
+	}
+
+	.suggestion:hover,
+	.suggestion:focus-visible {
+		background: var(--color-track);
+	}
+
+	.suggestion-thumb {
+		width: 40px;
+		height: 40px;
+		flex-shrink: 0;
+		border-radius: 8px;
+		object-fit: cover;
+		background: var(--color-track);
+	}
+
+	.suggestion-text {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.suggestion-name {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--color-text);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.suggestion-meta {
+		font-size: 0.75rem;
+		color: var(--color-muted);
+		text-transform: capitalize;
+	}
+
+	/* --- Anteprima template selezionato --- */
+	.template-preview {
+		display: flex;
+		gap: 0.75rem;
+		align-items: center;
+		padding: 0.6rem;
+		margin-top: 0.6rem;
+		background: var(--color-card);
+		border: 1px solid var(--color-border);
+	}
+
+	.preview-gif {
+		width: 72px;
+		height: 72px;
+		flex-shrink: 0;
+		border-radius: 10px;
+		object-fit: cover;
+		background: var(--color-track);
+	}
+
+	.preview-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		min-width: 0;
+	}
+
+	.preview-name {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--color-text);
+	}
+
+	.preview-meta {
+		font-size: 0.78rem;
+		color: var(--color-muted);
+		text-transform: capitalize;
+	}
+
+	.preview-attr {
+		font-size: 0.68rem;
+		color: var(--color-muted);
+		opacity: 0.8;
+		margin-top: 0.1rem;
 	}
 
 	.segmented-control {
