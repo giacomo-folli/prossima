@@ -48,30 +48,28 @@ Verified on 2026-09-02:
 These decisions remove ambiguity from the backlog. Change one only through a
 documented decision and update every dependent task before implementation.
 
-1. **Feed:** remove the cross-user feed and `get_admin_sessions` RPC for now.
-   A future community feature requires an explicit sharing and consent design.
-2. **Language:** Italian is the primary UI language. Persisted enum values and
+1. **Language:** Italian is the primary UI language. Persisted enum values and
    code identifiers remain English; all user-facing copy and errors are Italian.
-3. **Progression:** progression changes happen during workout review. The user
+2. **Progression:** progression changes happen during workout review. The user
    explicitly chooses `repeat`, `advance`, `regress`, or `manual`. A
    recommendation may preselect a choice but never commits it automatically.
-4. **History:** completed workouts are immutable snapshots of the target and
+3. **History:** completed workouts are immutable snapshots of the target and
    actual performance. Editing session metadata does not rewrite the plan that
    was active at completion.
-5. **Storage model:** normalize workouts, workout exercises, and performed sets.
+4. **Storage model:** normalize workouts, workout exercises, and performed sets.
    Retain a versioned JSON snapshot on each completed workout for durable
    historical rendering and export.
-6. **Offline scope:** ship an installable, online-first PWA first. Workout drafts
+5. **Offline scope:** ship an installable, online-first PWA first. Workout drafts
    survive refresh, suspension, and app restarts, but final completion requires
    a connection. A visible offline outbox is a later, separate task.
-7. **AI:** AI features are optional enhancements. They stay disabled in
+6. **AI:** AI features are optional enhancements. They stay disabled in
    production until the worker is authenticated, bounded, and disclosed.
-8. **Analytics:** store instants in UTC and derive calendar days in the user's
+7. **Analytics:** store instants in UTC and derive calendar days in the user's
    IANA timezone. Default to the browser timezone until the user chooses one.
-9. **Compatibility:** migrate readable legacy data. Unparseable progression
+8. **Compatibility:** migrate readable legacy data. Unparseable progression
    descriptions are flagged for review and are never converted silently to
    `3 x 10`.
-10. **Quick exercises:** remove `quick exercise` as a separate domain type.
+9.  **Quick exercises:** remove `quick exercise` as a separate domain type.
     Migrate each one to a plan exercise with `completion` measurement and one
     repeatable set. “Quick” may remain a UI filter or template label only.
 
@@ -171,38 +169,6 @@ A task is complete only when all applicable statements are true:
 # Milestone 0 — Stop trust and data-loss failures
 
 Nothing in later milestones should be released until this milestone is done.
-
-## [ ] SEC-001 — Remove cross-user workout access
-
-**Priority:** P0
-**Depends on:** ARCH-001
-**Primary touchpoints:**
-`supabase/migrations/20260610180900_create_admin_sessions_rpc.sql`, a new
-Supabase migration, `src/routes/feed/+page.svelte`,
-`src/routes/home/+page.svelte`
-
-Implementation:
-
-- [ ] Add a new migration that revokes execute on
-  `public.get_admin_sessions()` from `PUBLIC`, `anon`, and `authenticated`, then
-  drops the function.
-- [ ] Remove the `/feed` route and every feed link/icon from normal navigation.
-- [ ] Search for all direct and RPC reads of `training_sessions` and `profiles`;
-  confirm they are scoped to `auth.uid()`.
-- [ ] Add database authorization tests covering select, insert, update, and
-  delete for two users across `profiles`, `exercises`, progression data, and
-  workout data.
-- [ ] Add an explicit denied test proving user A cannot retrieve user B's
-  workout or profile through any remaining RPC/view.
-
-Acceptance:
-
-- [ ] `get_admin_sessions` is absent in a freshly migrated database.
-- [ ] Requests made as `anon` or an ordinary authenticated user cannot read
-  another user's private data.
-- [ ] The built app contains no route or affordance for the removed feed.
-
-Verification: database policy suite, route smoke test, `rg "get_admin_sessions|/feed"`.
 
 ## [ ] SEC-002 — Authenticate and bound the AI worker
 

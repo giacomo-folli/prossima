@@ -1,6 +1,5 @@
 import type { Exercise, TrainingSession, UserProfile } from "../types";
 import { supabase } from "$lib/supabase";
-import type { User } from "@supabase/supabase-js";
 import type { Database, Json } from "$lib/database.types";
 
 type TrainingSessionRow =
@@ -223,7 +222,9 @@ export async function updateUserProfile(
 	profile: Partial<UserProfile>,
 ): Promise<UserProfile | null> {
 	try {
-		const { data: { user } } = await supabase.auth.getUser();
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
 		if (!user) {
 			console.error("No active session to update profile");
 			return null;
@@ -287,7 +288,12 @@ export async function insertExercise(
 	try {
 		const { data: exercise, error: exerciseError } = await supabase
 			.from("exercises")
-			.insert({ name, type: "exercise", current_step_index: 0, icon: icon ?? null })
+			.insert({
+				name,
+				type: "exercise",
+				current_step_index: 0,
+				icon: icon ?? null,
+			})
 			.select("id, name, icon, type, current_step_index")
 			.single();
 
@@ -346,7 +352,13 @@ export async function removeExercise(exerciseId: string): Promise<boolean> {
 export async function updateExerciseInDB(
 	exerciseId: string,
 	name: string,
-	steps: Array<{ id?: string; description: string; step_index: number; completed: boolean; completed_at?: string }>,
+	steps: Array<{
+		id?: string;
+		description: string;
+		step_index: number;
+		completed: boolean;
+		completed_at?: string;
+	}>,
 	icon?: string | null,
 ): Promise<boolean> {
 	try {
@@ -364,7 +376,9 @@ export async function updateExerciseInDB(
 		const existingStepIds = (existingStepsData ?? []).map((s) => s.id);
 		const updatedStepIds = steps.map((s) => s.id).filter(Boolean) as string[];
 
-		const stepIdsToDelete = existingStepIds.filter((id) => !updatedStepIds.includes(id));
+		const stepIdsToDelete = existingStepIds.filter(
+			(id) => !updatedStepIds.includes(id),
+		);
 		if (stepIdsToDelete.length > 0) {
 			const { error: deleteError } = await supabase
 				.from("steps")
@@ -384,7 +398,10 @@ export async function updateExerciseInDB(
 			.single();
 
 		if (exFetchError || !exerciseData) {
-			console.error("Failed to fetch exercise current_step_index:", exFetchError?.message);
+			console.error(
+				"Failed to fetch exercise current_step_index:",
+				exFetchError?.message,
+			);
 			return false;
 		}
 
@@ -395,7 +412,10 @@ export async function updateExerciseInDB(
 		}
 
 		// 3. Update the exercise name and current_step_index (and icon if provided)
-		const exercisePatch: ExerciseUpdate = { name, current_step_index: nextIndex };
+		const exercisePatch: ExerciseUpdate = {
+			name,
+			current_step_index: nextIndex,
+		};
 		if (icon !== undefined) exercisePatch.icon = icon;
 
 		const { error: exUpdateError } = await supabase
@@ -404,7 +424,10 @@ export async function updateExerciseInDB(
 			.eq("id", exerciseId);
 
 		if (exUpdateError) {
-			console.error("Failed to update exercise name and progress:", exUpdateError.message);
+			console.error(
+				"Failed to update exercise name and progress:",
+				exUpdateError.message,
+			);
 			return false;
 		}
 
@@ -416,7 +439,9 @@ export async function updateExerciseInDB(
 				description: s.description,
 				step_index: s.step_index,
 				completed: s.completed,
-				completed_at: s.completed ? s.completed_at || new Date().toISOString() : null,
+				completed_at: s.completed
+					? s.completed_at || new Date().toISOString()
+					: null,
 			}));
 
 			const { error: upsertError } = await supabase

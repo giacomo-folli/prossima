@@ -7,7 +7,6 @@ import {
 	loadTrainingSessions,
 	updateTrainingSession,
 } from "../utils/storage";
-import { supabase } from "$lib/supabase";
 
 function createSessionsStore() {
 	const { subscribe, update, set } = writable<TrainingSession[]>([]);
