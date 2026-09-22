@@ -75,8 +75,7 @@
 	let editDate = $state(""); // ISO date string for <input type="date">
 	let editTime = $state(""); // HH:MM for <input type="time">
 
-	// The note is stored on the session object (optional field we add)
-	const existingNote = $derived((session as any)?.note ?? "");
+	const existingNote = $derived(session?.notes ?? "");
 
 	function enterEdit() {
 		if (!session) return;

@@ -1,21 +1,69 @@
-name: Deploy to GitHub Pages
+name: Test and deploy to GitHub Pages
 
 on:
+  pull_request:
+    branches:
+      - master
   push:
     branches:
       - master
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# A PR must not cancel a master deployment (or another PR's checks).
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium and system dependencies
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start disposable Supabase with migrations and fixtures
+        run: pnpm db:start --exclude studio,postgres-meta
+
+      - name: Type checks, unit, worker, database and browser tests
+        run: pnpm test:ci
+
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            playwright-report/
+            test-results/
+            coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Stop disposable Supabase
+        if: always()
+        run: pnpm exec supabase stop --no-backup
+
   build:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     steps:
@@ -52,7 +100,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
+    permissions:
+      pages: write
+      id-token: write
     needs: build
     runs-on: ubuntu-latest
 

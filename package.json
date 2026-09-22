@@ -18,10 +18,12 @@
     "db:types": "supabase gen types typescript --local --schema public > src/lib/database.types.ts",
     "test:unit": "vitest run --coverage",
     "test:integration": "supabase test db",
-    "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium --project=mobile-small",
-    "test:a11y": "playwright test --project=a11y-chromium",
+    "test:e2e": "node scripts/test-browser.mjs --project=desktop-chromium --project=mobile-chromium --project=mobile-small",
+    "test:a11y": "node scripts/test-browser.mjs --project=a11y-chromium",
+    "test:browser": "node scripts/test-browser.mjs",
     "test:worker": "pnpm --dir groq-worker test",
-    "test": "pnpm test:unit && pnpm test:worker && pnpm test:integration && pnpm test:e2e && pnpm test:a11y"
+    "test": "pnpm test:unit && pnpm test:worker && pnpm test:integration && pnpm test:browser",
+    "test:ci": "pnpm check && pnpm test"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
