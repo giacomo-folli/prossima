@@ -197,7 +197,7 @@ export default {
 			});
 		}
 
-		const groqModel = model || "llama-3.1-8b-instant";
+		const groqModel = model || "openai/gpt-oss-20b";
 		const payload: any = {
 			model: groqModel,
 			messages,
