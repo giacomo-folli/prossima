@@ -58,7 +58,7 @@
 	}
 </script>
 
-<div class="auth-page">
+<main class="auth-page">
 	<div class="wrapper">
 		<div class="brand">
 			<div class="brand-icon">
@@ -139,16 +139,16 @@
 			<div class="divider">
 				<span>oppure</span>
 				{#if isSignUp}
-					<span
+					<button
+						type="button"
 						class="link-span"
-						role="presentation"
-						onclick={() => (isSignUp = false)}>accedi</span
+						onclick={() => (isSignUp = false)}>accedi</button
 					>
 				{:else}
-					<span
+					<button
+						type="button"
 						class="link-span"
-						role="presentation"
-						onclick={() => (isSignUp = true)}>crea account</span
+						onclick={() => (isSignUp = true)}>crea account</button
 					>
 				{/if}
 			</div>
@@ -156,15 +156,24 @@
 
 		<p class="footer-hint">Accedendo accetti i Termini di servizio.</p>
 	</div>
-</div>
+</main>
 
 <style>
 	.link-span {
+		appearance: none;
+		background: none;
+		border: 0;
+		border-radius: 0;
+		color: var(--auth-muted);
+		font-size: 0.75rem;
+		font-weight: 400;
+		padding: 0;
 		text-decoration: underline;
 		cursor: pointer;
 	}
 
 	.auth-page {
+		--auth-muted: #626a75;
 		min-height: 100vh;
 		display: flex;
 		align-items: center;
@@ -211,7 +220,7 @@
 	.brand-sub {
 		margin: 0;
 		font-size: 0.85rem;
-		color: var(--color-muted);
+		color: var(--auth-muted);
 	}
 
 	/* ── Form stack — no card, fields float on the bg ── */
@@ -232,7 +241,7 @@
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: var(--color-muted);
+		color: var(--auth-muted);
 	}
 
 	input {
@@ -251,6 +260,7 @@
 		transition:
 			border-color 0.15s,
 			box-shadow 0.15s;
+		appearance: none;
 		-webkit-appearance: none;
 	}
 
@@ -265,7 +275,7 @@
 	}
 
 	input::placeholder {
-		color: var(--color-muted);
+		color: var(--auth-muted);
 		font-weight: 400;
 	}
 
@@ -328,7 +338,7 @@
 
 	.divider span {
 		font-size: 0.75rem;
-		color: var(--color-muted);
+		color: var(--auth-muted);
 		white-space: nowrap;
 	}
 
@@ -337,6 +347,10 @@
 		margin: 0;
 		text-align: center;
 		font-size: 0.75rem;
-		color: var(--color-muted);
+		color: var(--auth-muted);
+	}
+
+	:global(html.dark) .auth-page {
+		--auth-muted: var(--color-muted);
 	}
 </style>

@@ -359,7 +359,7 @@ Verification: interaction test for log/open/edit/reload and legacy fixtures.
 This milestone creates the contracts that every core feature uses. Avoid adding
 feature-specific Supabase calls after it begins.
 
-## [ ] ARCH-001 — Add test tooling and generated database types
+## [-] ARCH-001 — Add test tooling and generated database types
 
 **Priority:** P0
 **Depends on:** none
@@ -368,16 +368,16 @@ configuration, generated Supabase types
 
 Implementation:
 
-- [ ] Add a fast unit/module runner with DOM support for Svelte interaction
+- [x] Add a fast unit/module runner with DOM support for Svelte interaction
   tests and coverage reporting.
-- [ ] Add Playwright with authenticated test fixtures and mobile viewports.
-- [ ] Add axe integration for rendered-route checks.
-- [ ] Add a local Supabase policy/integration test command and deterministic
+- [x] Add Playwright with authenticated test fixtures and mobile viewports.
+- [x] Add axe integration for rendered-route checks.
+- [x] Add a local Supabase policy/integration test command and deterministic
   seed fixtures for at least two users.
-- [ ] Add worker test tooling using a Cloudflare-compatible runtime.
-- [ ] Generate TypeScript types from the current Supabase schema and document
+- [x] Add worker test tooling using a Cloudflare-compatible runtime.
+- [x] Generate TypeScript types from the current Supabase schema and document
   the regeneration command.
-- [ ] Add scripts for `test:unit`, `test:integration`, `test:e2e`, `test:a11y`,
+- [x] Add scripts for `test:unit`, `test:integration`, `test:e2e`, `test:a11y`,
   `test:worker`, and aggregate `test`.
 - [ ] Add one passing smoke test in each layer so CI wiring can be verified.
 
@@ -387,7 +387,7 @@ Acceptance:
 - [ ] At least one allowed owner read and one denied cross-user read are
   exercised against an owner-scoped table in local Supabase; SEC-001 extends
   this to the vulnerable RPC and all private tables.
-- [ ] Generated database types are consumed by the Supabase client.
+- [x] Generated database types are consumed by the Supabase client.
 
 Verification: run every new script once from a reset local database.
 

@@ -1,3 +1,7 @@
+packages:
+  - .
+  - groq-worker
+
 allowBuilds:
   '@google/genai': true
   core-js: true

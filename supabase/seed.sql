@@ -1,3 +1,137 @@
+-- Deterministic local-only fixtures used by policy and browser tests.
+-- These credentials are intentionally public and must never be used outside the
+-- disposable Supabase stack created by `pnpm db:start` / `pnpm db:reset`.
+
+insert into auth.users (
+  instance_id,
+  id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
+)
+values
+  (
+    '00000000-0000-0000-0000-000000000000',
+    '11111111-1111-4111-8111-111111111111',
+    'authenticated',
+    'authenticated',
+    'owner-a@prossima.test',
+    extensions.crypt('Prossima-test-1', extensions.gen_salt('bf')),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"display_name":"Owner A"}'::jsonb,
+    now(),
+    now(),
+    '',
+    '',
+    '',
+    ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    '22222222-2222-4222-8222-222222222222',
+    'authenticated',
+    'authenticated',
+    'owner-b@prossima.test',
+    extensions.crypt('Prossima-test-2', extensions.gen_salt('bf')),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"display_name":"Owner B"}'::jsonb,
+    now(),
+    now(),
+    '',
+    '',
+    '',
+    ''
+  );
+
+insert into auth.identities (
+  id,
+  provider_id,
+  user_id,
+  identity_data,
+  provider,
+  last_sign_in_at,
+  created_at,
+  updated_at
+)
+values
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '11111111-1111-4111-8111-111111111111',
+    '11111111-1111-4111-8111-111111111111',
+    '{"sub":"11111111-1111-4111-8111-111111111111","email":"owner-a@prossima.test"}'::jsonb,
+    'email',
+    now(),
+    now(),
+    now()
+  ),
+  (
+    '22222222-2222-4222-8222-222222222222',
+    '22222222-2222-4222-8222-222222222222',
+    '22222222-2222-4222-8222-222222222222',
+    '{"sub":"22222222-2222-4222-8222-222222222222","email":"owner-b@prossima.test"}'::jsonb,
+    'email',
+    now(),
+    now(),
+    now()
+  );
+
+insert into public.exercises (id, user_id, name, icon, type, current_step_index)
+values
+  (
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    '11111111-1111-4111-8111-111111111111',
+    'Fixture Owner A',
+    'dumbbell',
+    'exercise',
+    0
+  ),
+  (
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    '22222222-2222-4222-8222-222222222222',
+    'Fixture Owner B',
+    'dumbbell',
+    'exercise',
+    0
+  );
+
+insert into public.steps (
+  id,
+  exercise_id,
+  description,
+  completed,
+  completed_at,
+  step_index
+)
+values
+  (
+    'aaaaaaaa-0000-4000-8000-000000000001',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    '3 serie da 5 ripetizioni',
+    false,
+    null,
+    0
+  ),
+  (
+    'bbbbbbbb-0000-4000-8000-000000000001',
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    '3 serie da 8 ripetizioni',
+    false,
+    null,
+    0
+  );
+
 -- -- Insert into the auth table first to satisfy the foreign key constraint
 -- -- INSERT INTO auth.users (id, email) VALUES ('87f763b2-03ee-4421-bf22-00d753dc8fb8', 'giacomofolli01@gmail.com');
 

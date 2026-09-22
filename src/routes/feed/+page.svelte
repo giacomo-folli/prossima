@@ -4,11 +4,19 @@
 	import { resolve } from "$app/paths";
 	import Icon from "$lib/components/Icon.svelte";
 	import { DateTime } from "luxon";
+	import type { Json } from "$lib/database.types";
+
+	interface FeedExercise {
+		icon?: string;
+		name: string;
+		step_label?: string;
+		type?: string;
+	}
 
 	interface AdminSession {
 		id: string;
 		completed_at: string;
-		exercises: any[];
+		exercises: FeedExercise[];
 		notes: string | null;
 		liked: boolean;
 		user_id: string;
@@ -21,6 +29,12 @@
 	let loading = $state(true);
 	let errorMsg = $state<string | null>(null);
 
+	function parseFeedExercises(value: Json): FeedExercise[] {
+		return Array.isArray(value)
+			? (value as unknown as FeedExercise[])
+			: [];
+	}
+
 	async function fetchSessions() {
 		loading = true;
 		errorMsg = null;
@@ -31,7 +45,10 @@
 				errorMsg =
 					"Impossibile caricare le sessioni. Assicurati di aver eseguito le migrazioni del database.";
 			} else {
-				sessions = data || [];
+				sessions = (data ?? []).map((session) => ({
+					...session,
+					exercises: parseFeedExercises(session.exercises),
+				}));
 			}
 		} catch (err) {
 			console.error("Runtime error fetching admin sessions:", err);

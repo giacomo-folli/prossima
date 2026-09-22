@@ -1,6 +1,36 @@
 import type { Exercise, TrainingSession, UserProfile } from "../types";
 import { supabase } from "$lib/supabase";
 import type { User } from "@supabase/supabase-js";
+import type { Database, Json } from "$lib/database.types";
+
+type TrainingSessionRow =
+	Database["public"]["Tables"]["training_sessions"]["Row"];
+type TrainingSessionProjection = Pick<
+	TrainingSessionRow,
+	"id" | "completed_at" | "exercises" | "notes" | "liked"
+>;
+type TrainingSessionUpdate =
+	Database["public"]["Tables"]["training_sessions"]["Update"];
+type ExerciseUpdate = Database["public"]["Tables"]["exercises"]["Update"];
+
+function serializeExercises(exercises: Exercise[]): Json {
+	return exercises as unknown as Json;
+}
+
+function deserializeExercises(value: Json): Exercise[] {
+	// DOMAIN-001 replaces this compatibility cast with a versioned validator.
+	return Array.isArray(value) ? (value as unknown as Exercise[]) : [];
+}
+
+function toTrainingSession(row: TrainingSessionProjection): TrainingSession {
+	return {
+		id: row.id,
+		completed_at: row.completed_at,
+		exercises: deserializeExercises(row.exercises),
+		notes: row.notes ?? undefined,
+		liked: row.liked,
+	};
+}
 
 /**
  * Loads all exercises along with their nested, ordered steps from Supabase.
@@ -101,7 +131,7 @@ export async function loadTrainingSessions(): Promise<
 			return null;
 		}
 
-		return (data ?? []) as TrainingSession[];
+		return (data ?? []).map(toTrainingSession);
 	} catch (err) {
 		console.error("Unexpected failure loading training sessions:", err);
 		return null;
@@ -114,7 +144,7 @@ export async function insertTrainingSession(
 	try {
 		const { data, error } = await supabase
 			.from("training_sessions")
-			.insert({ exercises })
+			.insert({ exercises: serializeExercises(exercises) })
 			.select("id, completed_at, exercises")
 			.single();
 
@@ -123,7 +153,11 @@ export async function insertTrainingSession(
 			return null;
 		}
 
-		return data as TrainingSession;
+		return {
+			id: data.id,
+			completed_at: data.completed_at,
+			exercises: deserializeExercises(data.exercises),
+		};
 	} catch (err) {
 		console.error("Unexpected failure inserting training session:", err);
 		return null;
@@ -219,9 +253,16 @@ export async function updateTrainingSession(
 	id: string,
 	patch: Partial<Omit<TrainingSession, "id" | "user_id">>,
 ): Promise<TrainingSession | null> {
+	const { exercises, ...metadata } = patch;
+	const databasePatch: TrainingSessionUpdate = {
+		...metadata,
+		...(exercises === undefined
+			? {}
+			: { exercises: serializeExercises(exercises) }),
+	};
 	const { data, error } = await supabase
 		.from("training_sessions")
-		.update(patch)
+		.update(databasePatch)
 		.eq("id", id)
 		.select()
 		.single();
@@ -230,7 +271,7 @@ export async function updateTrainingSession(
 		console.error("updateTrainingSession:", error.message);
 		return null;
 	}
-	return data as TrainingSession;
+	return toTrainingSession(data);
 }
 
 /**
@@ -354,7 +395,7 @@ export async function updateExerciseInDB(
 		}
 
 		// 3. Update the exercise name and current_step_index (and icon if provided)
-		const exercisePatch: Record<string, unknown> = { name, current_step_index: nextIndex };
+		const exercisePatch: ExerciseUpdate = { name, current_step_index: nextIndex };
 		if (icon !== undefined) exercisePatch.icon = icon;
 
 		const { error: exUpdateError } = await supabase
@@ -394,4 +435,3 @@ export async function updateExerciseInDB(
 		return false;
 	}
 }
-

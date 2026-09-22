@@ -2,14 +2,18 @@
   "name": "prossima-groq-proxy",
   "version": "1.0.0",
   "description": "CORS-enabled secure proxy for Groq API",
+  "type": "module",
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.1.4",
     "@cloudflare/workers-types": "^4.20250204.0",
     "typescript": "^5.3.3",
+    "vitest": "^4.1.11",
     "wrangler": "^4.95.0"
   }
 }

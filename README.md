@@ -15,10 +15,15 @@ The goal of this project is to keep exercise tracking simple and effortless. The
 
 ## Development
 
+Prerequisites:
+
+- Node.js 22.13 or newer and pnpm 11.5.0 (the version declared in `package.json`).
+- Docker, with the daemon running, for local Supabase and database tests.
+- Chromium installed for Playwright (`pnpm exec playwright install chromium`).
 
 ```bash
 # Install dependencies:
-pnpm install
+pnpm install --frozen-lockfile
 
 # Run the development server:
 pnpm dev
@@ -29,6 +34,47 @@ pnpm build
 # Preview the production build:
 pnpm preview
 ```
+
+### Local Supabase
+
+The local stack applies every migration and then loads deterministic fixtures
+for two isolated users from `supabase/seed.sql`. The fixtures and their
+credentials are only for the disposable local database.
+
+```bash
+# Start the local services (requires Docker):
+pnpm db:start
+
+# Reapply migrations and deterministic seed data:
+pnpm db:reset
+
+# Regenerate src/lib/database.types.ts from the migrated public schema:
+pnpm db:types
+```
+
+Regenerate the database types after every schema migration and commit the
+result. The Supabase client consumes these generated types directly. Browser
+tests run Vite in `test` mode and use the public local-only values in
+`.env.test`; they never use production data.
+
+### Tests
+
+Run `pnpm db:start` and `pnpm db:reset` once before the integration and
+authenticated browser suites. Install Chromium once with
+`pnpm exec playwright install chromium`.
+
+| Command | Layer |
+| --- | --- |
+| `pnpm test:unit` | Vitest unit/module and Svelte DOM tests, with HTML, LCOV, and terminal coverage |
+| `pnpm test:integration` | pgTAP migrations and row-level-security policies against local Supabase |
+| `pnpm test:e2e` | Authenticated Playwright flows at desktop, mobile, and 320 px viewports |
+| `pnpm test:a11y` | axe checks against rendered routes in Chromium |
+| `pnpm test:worker` | Worker tests inside Cloudflare's Workers runtime |
+| `pnpm test` | Every layer above, in dependency order |
+
+The generated Playwright authentication state is written to
+`playwright/.auth/` and is ignored by Git because it contains a reusable local
+session. Test and coverage reports are also ignored.
 
 
 ## Deployment

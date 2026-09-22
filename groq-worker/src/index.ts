@@ -226,7 +226,17 @@ export default {
 					});
 					if (!res.ok) {
 						const errData = await res.json().catch(() => ({}));
-						throw new Error(errData.error?.message || `HTTP ${res.status}`);
+						const upstreamMessage =
+							typeof errData === "object" &&
+							errData !== null &&
+							"error" in errData &&
+							typeof errData.error === "object" &&
+							errData.error !== null &&
+							"message" in errData.error &&
+							typeof errData.error.message === "string"
+								? errData.error.message
+								: `HTTP ${res.status}`;
+						throw new Error(upstreamMessage);
 					}
 					return res;
 				},
