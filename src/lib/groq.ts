@@ -61,8 +61,9 @@ export async function generateText(
 		},
 		body: JSON.stringify({
 			prompt,
-			model: options.model,
-			temperature: options.temperature,
+			model: options.model || "openai/gpt-oss-20b",
+			stream: false,
+			temperature: options.temperature || 0.7,
 			maxOutputTokens: options.maxOutputTokens,
 			responseFormat: options.responseFormat,
 		}),
