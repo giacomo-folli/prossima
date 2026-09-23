@@ -33,8 +33,8 @@ export interface ChatMessage {
 }
 
 export interface GenerateOptions {
-	model?: string;
-	temperature?: number;
+	// model?: string;
+	// temperature?: number;
 	maxOutputTokens?: number;
 	responseFormat?: any;
 }
@@ -61,9 +61,6 @@ export async function generateText(
 		},
 		body: JSON.stringify({
 			prompt,
-			model: options.model || "openai/gpt-oss-20b",
-			stream: false,
-			temperature: options.temperature || 0.7,
 			maxOutputTokens: options.maxOutputTokens,
 			responseFormat: options.responseFormat,
 		}),
@@ -79,129 +76,6 @@ export async function generateText(
 
 	const data = (await response.json()) as { text: string };
 	return data.text;
-}
-
-/**
- * Multi-turn chat: pass the full message history and receive the next reply.
- * Keep the returned message and append it to your history for the next call.
- */
-export async function chat(
-	messages: ChatMessage[],
-	options: GenerateOptions = {},
-): Promise<string> {
-	const response = await fetch(`${workerUrl}/api/groq`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			history: messages,
-			model: options.model,
-			temperature: options.temperature,
-			maxOutputTokens: options.maxOutputTokens,
-			responseFormat: options.responseFormat,
-		}),
-	});
-
-	if (!response.ok) {
-		const errData = await response.json().catch(() => ({}));
-		throw new Error(
-			errData.error?.message ||
-				`HTTP ${response.status}: Failed to generate chat response`,
-		);
-	}
-
-	const data = (await response.json()) as { text: string };
-	return data.text;
-}
-
-/**
- * Streaming variant of generateText — yields text chunks as they arrive.
- * Usage:
- *   for await (const chunk of streamText("Tell me about squats")) {
- *     output += chunk;
- *   }
- */
-export async function* streamText(
-	prompt: string,
-	options: GenerateOptions = {},
-): AsyncGenerator<string> {
-	const response = await fetch(`${workerUrl}/api/groq`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			prompt,
-			stream: true,
-			model: options.model,
-			temperature: options.temperature,
-			maxOutputTokens: options.maxOutputTokens,
-			responseFormat: options.responseFormat,
-		}),
-	});
-
-	if (!response.ok) {
-		const errData = await response.json().catch(() => ({}));
-		throw new Error(
-			errData.error?.message ||
-				`HTTP ${response.status}: Failed to stream text`,
-		);
-	}
-
-	const reader = response.body?.getReader();
-	if (!reader) {
-		throw new Error("Response body is not readable");
-	}
-
-	const decoder = new TextDecoder();
-	let buffer = "";
-
-	try {
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-
-			buffer += decoder.decode(value, { stream: true });
-			const lines = buffer.split("\n");
-
-			// Save the incomplete line back to the buffer
-			buffer = lines.pop() || "";
-
-			for (const line of lines) {
-				const trimmed = line.trim();
-				if (!trimmed) continue;
-
-				if (trimmed.startsWith("data: ")) {
-					const dataStr = trimmed.slice(6);
-					if (dataStr === "[DONE]") {
-						return;
-					}
-					try {
-						const parsed = JSON.parse(dataStr);
-						if (parsed.error) {
-							throw new Error(parsed.error.message);
-						}
-						// OpenAI/Groq SSE chunk format: choices[0].delta.content
-						const content = parsed.choices?.[0]?.delta?.content;
-						if (content) {
-							yield content;
-						}
-					} catch (e) {
-						if (
-							e instanceof Error &&
-							e.message &&
-							!e.message.startsWith("Unexpected end")
-						) {
-							throw e;
-						}
-					}
-				}
-			}
-		}
-	} finally {
-		reader.releaseLock();
-	}
 }
 
 // ── Domain-specific helpers ───────────────────────────────────────────────────
@@ -227,9 +101,9 @@ IMPORTANT: You must return a valid JSON object matching this schema:
 
 	try {
 		const raw = await generateText(`${systemPrompt}\n\nUser: ${userPrompt}`, {
-			temperature: 0.5,
+			// temperature: 0.5,
 			maxOutputTokens: 1024,
-			responseFormat: { type: "json_object" },
+			// responseFormat: { type: "json_object" },
 		});
 
 		let cleanRaw = raw.trim();
@@ -244,7 +118,10 @@ IMPORTANT: You must return a valid JSON object matching this schema:
 		try {
 			return JSON.parse(cleanRaw) as ExerciseSuggestion;
 		} catch (parseErr) {
-			console.error("groq.suggestExercise: JSON parse failed. Raw response:", raw);
+			console.error(
+				"groq.suggestExercise: JSON parse failed. Raw response:",
+				raw,
+			);
 			console.error("Cleaned response tried to parse:", cleanRaw);
 			throw parseErr;
 		}
@@ -266,9 +143,15 @@ export async function generateProgressFeedback(
 	const pct = total === 0 ? 0 : Math.round((completedCount / total) * 100);
 	const isComplete = completedCount === total;
 
-	const prompt = getProgressFeedbackPrompt(exercise.name, completedCount, total, pct, isComplete);
+	const prompt = getProgressFeedbackPrompt(
+		exercise.name,
+		completedCount,
+		total,
+		pct,
+		isComplete,
+	);
 
-	return generateText(prompt, { temperature: 0.9, maxOutputTokens: 128 });
+	return generateText(prompt, { maxOutputTokens: 128 });
 }
 
 /**
@@ -281,7 +164,7 @@ export async function generateWeeklyTip(
 
 	const prompt = getWeeklyTipPrompt(names);
 
-	return generateText(prompt, { temperature: DEFAULT_TEMPERATURE, maxOutputTokens: 256 });
+	return generateText(prompt, { maxOutputTokens: 256 });
 }
 
 export interface StepsEnhancementResult {
@@ -319,9 +202,8 @@ User request for enhancement: "${userIntent}"`;
 
 	try {
 		const raw = await generateText(`${systemPrompt}\n\nUser: ${userPrompt}`, {
-			temperature: 0.6,
 			maxOutputTokens: 1024,
-			responseFormat: { type: "json_object" },
+			// responseFormat: { type: "json_object" },
 		});
 
 		let cleanRaw = raw.trim();
@@ -355,29 +237,26 @@ export async function generateAiRecap(
 		isStuck: boolean;
 		nextStep: string;
 	}>,
-	sessionDates: string[]
+	sessionDates: string[],
 ): Promise<AiRecapResult | null> {
 	const systemPrompt = AI_RECAP_SYSTEM_PROMPT;
 	const userPrompt = getAiRecapUserPrompt(exerciseStats, sessionDates);
 
 	try {
-		const raw = await generateText(`${systemPrompt}\n\nUser: ${userPrompt}`, {
-			temperature: 0.7,
-			maxOutputTokens: 1024,
-			responseFormat: { type: "json_object" },
-		});
+		const raw = await generateText(`${systemPrompt}\n\nUser: ${userPrompt}`);
 
 		let cleanRaw = raw.trim();
 		const firstBrace = cleanRaw.indexOf("{");
 		const lastBrace = cleanRaw.lastIndexOf("}");
+
 		if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
 			cleanRaw = cleanRaw.substring(firstBrace, lastBrace + 1);
 		}
 
-		return JSON.parse(cleanRaw) as AiRecapResult;
+		const res = JSON.parse(cleanRaw);
+		return res as AiRecapResult;
 	} catch (err) {
 		console.error("groq.generateAiRecap failed:", err);
 		return null;
 	}
 }
-

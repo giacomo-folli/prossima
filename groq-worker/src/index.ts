@@ -1,6 +1,12 @@
+import Groq from "groq-sdk";
+import type { ChatCompletionCreateParamsNonStreaming } from "groq-sdk/resources/chat/completions.js";
+
 export interface Env {
 	GROQ_API_KEY?: string;
 }
+
+const DEFAULT_MODEL = "openai/gpt-oss-20b";
+const DEFAULT_TEMPERATURE = 0.7;
 
 const ALLOWED_ORIGIN_PATTERNS = [
 	/^https?:\/\/localhost(:\d+)?$/,
@@ -28,48 +34,35 @@ function getCorsHeaders(request: Request): HeadersInit {
 	};
 }
 
-async function retryWithBackoff<T>({
-	fn,
-	maxRetries = 2,
-	delayMs = 2000,
-}: {
-	fn: () => Promise<T>;
-	maxRetries?: number;
-	delayMs: number;
-}): Promise<T> {
-	let lastError: any;
-	for (let attempt = 1; attempt <= maxRetries; attempt++) {
-		try {
-			return await fn();
-		} catch (err: any) {
-			lastError = err;
+function jsonResponse(
+	body: Record<string, unknown>,
+	status: number,
+	request: Request,
+): Response {
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: {
+			...getCorsHeaders(request),
+			"Content-Type": "application/json",
+		},
+	});
+}
 
-			const errStr = String(err).toLowerCase();
-			const isRetryable =
-				errStr.includes("503") ||
-				errStr.includes("429") ||
-				errStr.includes("busy") ||
-				errStr.includes("demand") ||
-				errStr.includes("temporarily") ||
-				errStr.includes("unavailable");
-
-			if (!isRetryable || attempt === maxRetries) {
-				throw err;
-			}
-
-			const backoffDelay = delayMs * Math.pow(2, attempt - 1);
-			await new Promise((resolve) => setTimeout(resolve, backoffDelay));
-		}
-	}
-	throw lastError;
+function errorResponse(
+	status: number,
+	message: string,
+	request: Request,
+): Response {
+	return jsonResponse({ error: { message, status } }, status, request);
 }
 
 export default {
 	async fetch(
 		request: Request,
 		env: Env,
-		ctx: ExecutionContext,
+		_ctx: ExecutionContext,
 	): Promise<Response> {
+		// CORS preflight
 		if (request.method === "OPTIONS") {
 			return new Response(null, {
 				status: 204,
@@ -77,216 +70,74 @@ export default {
 			});
 		}
 
+		const apiKey = env.GROQ_API_KEY;
+		if (!apiKey) {
+			return errorResponse(500, "API_KEY is missing.", request);
+		}
+
 		const url = new URL(request.url);
 
 		if (url.pathname !== "/api/groq") {
-			return new Response(
-				JSON.stringify({
-					error: { message: `Path not found: ${url.pathname}`, status: 404 },
-				}),
-				{
-					status: 404,
-					headers: {
-						...getCorsHeaders(request),
-						"Content-Type": "application/json",
-					},
-				},
-			);
+			return errorResponse(404, `Path not found: ${url.pathname}`, request);
 		}
 
 		if (request.method !== "POST") {
-			return new Response(
-				JSON.stringify({
-					error: {
-						message: `Method not allowed: ${request.method}`,
-						status: 405,
-					},
-				}),
-				{
-					status: 405,
-					headers: {
-						...getCorsHeaders(request),
-						"Content-Type": "application/json",
-					},
-				},
-			);
+			return errorResponse(405, `Not allowed: ${request.method}`, request);
 		}
 
 		let body: any;
 		try {
 			body = await request.json();
-		} catch (e) {
-			return new Response(
-				JSON.stringify({
-					error: { message: "Invalid JSON body", status: 400 },
-				}),
-				{
-					status: 400,
-					headers: {
-						...getCorsHeaders(request),
-						"Content-Type": "application/json",
-					},
-				},
-			);
+		} catch {
+			return errorResponse(400, "Invalid JSON body", request);
 		}
 
 		const {
 			prompt,
 			history,
-			stream,
-			temperature,
 			maxOutputTokens,
 			responseFormat,
-			model,
+			// model,
+			// temperature,
 		} = body;
 
 		if (typeof prompt !== "string" && !Array.isArray(history)) {
-			return new Response(
-				JSON.stringify({
-					error: {
-						message: "Missing 'prompt' or 'history' in request body",
-						status: 400,
-					},
-				}),
-				{
-					status: 400,
-					headers: {
-						...getCorsHeaders(request),
-						"Content-Type": "application/json",
-					},
-				},
+			return errorResponse(
+				400,
+				"Missing 'prompt' or 'history' in request body",
+				request,
 			);
 		}
 
-		const apiKey = env.GROQ_API_KEY;
-		if (!apiKey) {
-			return new Response(
-				JSON.stringify({
-					error: {
-						message:
-							"GROQ_API_KEY is not configured in the Cloudflare Worker environment.",
-						status: 500,
-					},
-				}),
-				{
-					status: 500,
-					headers: {
-						...getCorsHeaders(request),
-						"Content-Type": "application/json",
-					},
-				},
-			);
+		// Build messages array
+		let messages: ChatCompletionCreateParamsNonStreaming["messages"] = [];
+		if (history && history.length > 0) {
+			messages = history;
 		}
 
-		let messages: any[] = [];
-		if (Array.isArray(history) && history.length > 0) {
-			messages = history.map((item: any) => ({
-				role: item.role === "user" ? "user" : "assistant",
-				content: item.content,
-			}));
-			if (prompt) {
-				messages.push({
-					role: "user",
-					content: prompt,
-				});
-			}
-		} else {
-			messages.push({
-				role: "user",
-				content: prompt,
-			});
-		}
+		messages.push({ role: "user", content: prompt });
 
-		const groqModel = model || "openai/gpt-oss-20b";
-		const payload: any = {
-			model: groqModel,
+		const payload: ChatCompletionCreateParamsNonStreaming = {
 			messages,
-			temperature: typeof temperature === "number" ? temperature : 0.7,
-			stream: stream === true,
+			model: DEFAULT_MODEL,
+			temperature: DEFAULT_TEMPERATURE,
+			max_completion_tokens:
+				typeof maxOutputTokens === "number" ? maxOutputTokens : undefined,
+			response_format: responseFormat ?? undefined,
 		};
 
-		if (typeof maxOutputTokens === "number") {
-			payload.max_tokens = maxOutputTokens;
-		}
-
-		if (responseFormat) {
-			payload.response_format = responseFormat;
-		}
-
 		try {
-			const response = await retryWithBackoff({
-				fn: async () => {
-					const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-						method: "POST",
-						headers: {
-							"Authorization": `Bearer ${apiKey}`,
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify(payload),
-					});
-					if (!res.ok) {
-						const errData = await res.json().catch(() => ({}));
-						const upstreamMessage =
-							typeof errData === "object" &&
-							errData !== null &&
-							"error" in errData &&
-							typeof errData.error === "object" &&
-							errData.error !== null &&
-							"message" in errData.error &&
-							typeof errData.error.message === "string"
-								? errData.error.message
-								: `HTTP ${res.status}`;
-						throw new Error(upstreamMessage);
-					}
-					return res;
-				},
-				delayMs: 3000,
-			});
+			const groq = new Groq({ apiKey });
+			const response = await groq.chat.completions.create(payload);
 
-			// If streaming, just pipe the response back
-			if (stream) {
-				const headers = new Headers(getCorsHeaders(request));
-				headers.set("Content-Type", "text/event-stream");
-				headers.set("Cache-Control", "no-cache");
-				headers.set("Connection", "keep-alive");
-
-				return new Response(response.body, {
-					status: 200,
-					headers,
-				});
-			}
-
-			// Non-streaming response
-			const data: any = await response.json();
-			return new Response(
-				JSON.stringify({
-					text: data.choices?.[0]?.message?.content ?? "",
-				}),
-				{
-					status: 200,
-					headers: {
-						...getCorsHeaders(request),
-						"Content-Type": "application/json",
-					},
-				},
+			return jsonResponse(
+				{ text: response.choices?.[0]?.message?.content ?? "" },
+				200,
+				request,
 			);
 		} catch (err: any) {
-			const errorMsg = err instanceof Error ? err.message : String(err);
-			return new Response(
-				JSON.stringify({
-					error: {
-						message: `Groq API call failed: ${errorMsg}`,
-						status: 500,
-					},
-				}),
-				{
-					status: 500,
-					headers: {
-						...getCorsHeaders(request),
-						"Content-Type": "application/json",
-					},
-				},
-			);
+			const message = err?.message ?? String(err);
+			return errorResponse(500, `Groq API call failed: ${message}`, request);
 		}
 	},
 };

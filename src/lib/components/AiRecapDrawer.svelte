@@ -29,6 +29,14 @@
 		}
 	});
 
+	function writeOnLocalStorage(key: string, date: string, data: any) {
+		try {
+			localStorage.setItem(key, JSON.stringify({ date, data }));
+		} catch (e) {
+			console.error("Errore scrittura cache localStorage:", e);
+		}
+	}
+
 	async function fetchRecap() {
 		error = false;
 
@@ -68,29 +76,18 @@
 			)
 			.map((s) => new Date(s.completed_at).toLocaleDateString("sv"));
 
-		const result = await generateAiRecap(stats, recentSessionDates);
+		try {
+			const result = await generateAiRecap(stats, recentSessionDates);
 
-		if (
-			result &&
-			result.summary &&
-			Array.isArray(result.suggestions) &&
-			result.suggestions.length === 2
-		) {
-			recap = result;
-			loading = false;
+			if (result?.summary && result?.suggestions?.length === 2) {
+				recap = result;
+				loading = false;
 
-			try {
-				localStorage.setItem(
-					cacheKey,
-					JSON.stringify({
-						date: todayStr,
-						data: result,
-					}),
-				);
-			} catch (e) {
-				console.error("Errore scrittura cache localStorage:", e);
+				writeOnLocalStorage(cacheKey, todayStr, result);
 			}
-		} else {
+		} catch (error) {
+			console.error(error);
+			
 			loading = false;
 			error = true;
 		}

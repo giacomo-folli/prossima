@@ -2,7 +2,6 @@ import { expect, test } from "./fixtures";
 
 test("log a workout, reload its history, edit it and delete it", async ({ page, program, owner }) => {
 	await page.goto("home");
-	await page.getByRole("link", { name: "Vai agli esercizi" }).click();
 	const save = page.getByRole("button", { name: "Registra sessione" });
 	await expect(save).toBeDisabled();
 	await page.getByText(program.name, { exact: true }).click();
