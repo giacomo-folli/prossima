@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { exercises } from "$lib/stores/exercises";
 	import { sessions } from "$lib/stores/sessions";
-	import { daysWithActivity, getLast30Days, toDateKey } from "$lib/utils/activity";
+	import {
+		daysWithActivity,
+		getLast30Days,
+		toDateKey,
+	} from "$lib/utils/activity";
 
 	const last30 = $derived(getLast30Days());
 	const activeDays = $derived(daysWithActivity($sessions, $exercises));
@@ -10,7 +14,6 @@
 
 <section class="heatmap-card ios-card">
 	<div class="heatmap-header">
-		<h2 class="heatmap-title">La tua costanza</h2>
 		<p class="heatmap-subtitle">Ultimi 30 giorni</p>
 	</div>
 
@@ -35,14 +38,6 @@
 		margin-bottom: 16px;
 	}
 
-	.heatmap-title {
-		margin: 0;
-		font-size: 1.375rem;
-		font-weight: 700;
-		letter-spacing: -0.03em;
-		color: var(--color-text);
-	}
-
 	.heatmap-subtitle {
 		margin: 2px 0 0;
 		font-size: 0.8125rem;
@@ -52,7 +47,7 @@
 
 	.heatmap-grid {
 		display: grid;
-		grid-template-columns: repeat(6, 1fr);
+		grid-template-columns: repeat(10, 1fr);
 		gap: 6px;
 	}
 
@@ -60,11 +55,13 @@
 		aspect-ratio: 1;
 		border-radius: 8px;
 		background: var(--color-track);
-		transition: background 0.2s ease, box-shadow 0.2s ease;
+		transition:
+			background 0.2s ease,
+			box-shadow 0.2s ease;
 	}
 
 	:global(html.dark) .heatmap-cell {
-		background: #2C2C2E;
+		background: #2c2c2e;
 	}
 
 	.heatmap-cell.active {
@@ -72,6 +69,8 @@
 	}
 
 	.heatmap-cell.today {
-		box-shadow: 0 0 0 2.5px var(--color-bg), 0 0 0 4.5px var(--color-accent);
+		box-shadow:
+			0 0 0 2.5px var(--color-bg),
+			0 0 0 4.5px var(--color-accent);
 	}
 </style>

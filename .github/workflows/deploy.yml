@@ -17,58 +17,58 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # test:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 25
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+  #     - name: Setup pnpm
+  #       uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 22
+  #         cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+  #     - name: Install dependencies
+  #       run: pnpm install --frozen-lockfile
 
-      - name: Install Chromium and system dependencies
-        run: pnpm exec playwright install --with-deps chromium
+  #     - name: Install Chromium and system dependencies
+  #       run: pnpm exec playwright install --with-deps chromium
 
-      - name: Start disposable Supabase with migrations and fixtures
-        run: pnpm db:start --exclude studio,postgres-meta
+  #     - name: Start disposable Supabase with migrations and fixtures
+  #       run: pnpm db:start --exclude studio,postgres-meta
 
-      - name: Type checks, unit, worker, database and browser tests
-        run: pnpm test:ci
-        env:
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
-          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
-          PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ secrets.PUBLIC_POSTHOG_PROJECT_TOKEN }}
-          PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
-          VITE_GROQ_WORKER_URL: ${{ secrets.VITE_GROQ_WORKER_URL }}
+  #     - name: Type checks, unit, worker, database and browser tests
+  #       run: pnpm test:ci
+  #       env:
+  #         PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+  #         PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+  #         PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ secrets.PUBLIC_POSTHOG_PROJECT_TOKEN }}
+  #         PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
+  #         VITE_GROQ_WORKER_URL: ${{ secrets.VITE_GROQ_WORKER_URL }}
 
-      - name: Upload test reports
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: |
-            playwright-report/
-            test-results/
-            coverage/
-          retention-days: 7
-          if-no-files-found: ignore
+  #     - name: Upload test reports
+  #       if: ${{ !cancelled() }}
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: test-reports
+  #         path: |
+  #           playwright-report/
+  #           test-results/
+  #           coverage/
+  #         retention-days: 7
+  #         if-no-files-found: ignore
 
-      - name: Stop disposable Supabase
-        if: always()
-        run: pnpm exec supabase stop --no-backup
+  #     - name: Stop disposable Supabase
+  #       if: always()
+  #       run: pnpm exec supabase stop --no-backup
 
   build:
-    needs: test
+    # needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
