@@ -44,3 +44,14 @@ export function daysWithActivity(
 
 	return active;
 }
+
+export function getLast30Days(): string[] {
+	const days: string[] = [];
+	for (let i = 29; i >= 0; i--) {
+		const d = new Date();
+		d.setHours(0, 0, 0, 0);
+		d.setDate(d.getDate() - i);
+		days.push(toDateKey(d));
+	}
+	return days;
+}

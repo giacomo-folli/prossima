@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ActivityWeek from "$lib/components/home/ActivityWeek.svelte";
+	import ActivityHeatmap from "$lib/components/home/ActivityHeatmap.svelte";
 	import SessionCadence from "$lib/components/home/SessionCadence.svelte";
 	import StartSessionCard from "$lib/components/home/StartSessionCard.svelte";
 	import { user } from "$lib/stores/user";
@@ -13,8 +13,8 @@
 		</div>
 	</header>
 
+	<ActivityHeatmap />
 	<StartSessionCard />
-	<ActivityWeek />
 	<SessionCadence />
 </main>
 
