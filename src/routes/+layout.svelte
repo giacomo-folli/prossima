@@ -10,6 +10,7 @@
 	import { sessions } from "$lib/stores/sessions";
 	import { user } from "$lib/stores/user";
 	import { loadUser } from "$lib/utils/storage";
+	import type { Session } from "@supabase/supabase-js";
 
 	let pwaWebManifest = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : "");
 	let isSignedIn = $state(false);
@@ -17,10 +18,17 @@
 	const hideTabBar = $derived(page.url.pathname.includes("/training"));
 
 	onMount(() => {
+		let authVersion = 0;
+		let authTimer: ReturnType<typeof setTimeout> | undefined;
+
 		if (pwaInfo) {
-			import("virtual:pwa-register").then(({ registerSW }) => {
-				registerSW({ immediate: true });
-			});
+			import("virtual:pwa-register")
+				.then(({ registerSW }) => {
+					registerSW({ immediate: true });
+				})
+				.catch((error) => {
+					console.error("Errore registrazione service worker:", error);
+				});
 		}
 
 		const privRoutes = [
@@ -31,69 +39,97 @@
 			"home",
 		];
 
-		const handleAuthRedirect = async (session: unknown) => {
-			const currentRoute = page.url.pathname;
-			isSignedIn = !!session;
-			const protectedRouteActive = privRoutes.some((r) =>
-				currentRoute.includes(r),
-			);
-
-			if (!isSignedIn && protectedRouteActive) goto(resolve("/auth"));
-			else if (isSignedIn && currentRoute.includes("auth")) {
-				await sessions.init();
-				goto(resolve("/home"));
-			} else if (isSignedIn) {
-				await sessions.init();
-			}
-		};
-
 		const syncTheme = () => {
 			const savedTheme = localStorage.getItem("theme") || "auto";
 			const isDark =
 				savedTheme === "dark" ||
 				(savedTheme === "auto" &&
 					window.matchMedia("(prefers-color-scheme: dark)").matches);
+
 			document.documentElement.classList.toggle("dark", isDark);
 		};
 
 		syncTheme();
 
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
 		mediaQuery.addEventListener("change", syncTheme);
 		window.addEventListener("storage", syncTheme);
 		window.addEventListener("theme-changed", syncTheme);
 
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			handleAuthRedirect(session);
+		const syncAuth = async (session: Session | null, version: number) => {
+			const isCurrent = () => version === authVersion;
 
-			loadUser().then((user_profile) => {
-				$user = user_profile
-					? {
-							...user_profile,
-							email: session?.user.email,
-						}
-					: null;
-			});
-		});
+			if (!isCurrent()) return;
 
+			if (!session) {
+				const protectedRouteActive = privRoutes.some((route) =>
+					page.url.pathname.includes(route),
+				);
+
+				if (protectedRouteActive) {
+					await goto(resolve("/auth"));
+				}
+
+				return;
+			}
+
+			await sessions.init();
+			if (!isCurrent()) return;
+
+			const userProfile = await loadUser();
+			if (!isCurrent()) return;
+
+			$user = userProfile
+				? {
+						...userProfile,
+						email: session.user.email,
+					}
+				: null;
+
+			if (page.url.pathname.includes("auth")) {
+				await goto(resolve("/home"));
+			}
+		};
+
+		// Riceve anche INITIAL_SESSION: non serve chiamare getSession().
 		const {
 			data: { subscription },
 		} = supabase.auth.onAuthStateChange((_event, session) => {
-			handleAuthRedirect(session);
+			const version = ++authVersion;
 
-			loadUser().then((user_profile) => {
-				$user = user_profile
-					? {
-							...user_profile,
-							email: session?.user.email,
-						}
-					: null;
-			});
+			isSignedIn = !!session;
+
+			if (!session) {
+				$user = null;
+			}
+
+			if (authTimer !== undefined) {
+				clearTimeout(authTimer);
+			}
+
+			// Avvia le operazioni dopo la conclusione del callback auth.
+			authTimer = setTimeout(() => {
+				authTimer = undefined;
+
+				void syncAuth(session, version).catch((error) => {
+					console.error("Errore sincronizzazione autenticazione:", error);
+				});
+			}, 0);
 		});
 
 		return () => {
+			// Impedisce ai caricamenti pendenti di aggiornare $user
+			// o avviare redirect dopo la distruzione del componente.
+			authVersion++;
+
+			if (authTimer !== undefined) {
+				clearTimeout(authTimer);
+			}
+
 			subscription.unsubscribe();
 			$user = null;
+
 			mediaQuery.removeEventListener("change", syncTheme);
 			window.removeEventListener("storage", syncTheme);
 			window.removeEventListener("theme-changed", syncTheme);
