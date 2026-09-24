@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ActivityHeatmap from "$lib/components/home/ActivityHeatmap.svelte";
-	import SessionCadence from "$lib/components/home/SessionCadence.svelte";
+	import OpenHistoryCard from "$lib/components/home/OpenHistoryCard.svelte";
 	import StartSessionCard from "$lib/components/home/StartSessionCard.svelte";
 	import { user } from "$lib/stores/user";
 </script>
@@ -15,7 +15,7 @@
 
 	<ActivityHeatmap />
 	<StartSessionCard />
-	<SessionCadence />
+	<OpenHistoryCard />
 </main>
 
 <style>
