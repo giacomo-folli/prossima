@@ -1,3 +1,6 @@
 - [x] finire scrivere tests e inserirli nella pipeline CI/CD
 - [x] Fix il problema nell'ultimo deploy
-- [] rendere parsing delle risposte da ai più robusto
+- [ ] rendere parsing delle risposte da ai più robusto
+- [ ] Differenziare una task di allenamento da una task diversa e fornire prompt appropriati 
+- [ ] Accentrare la gestione dei prompts per il modello (unico file in cui gestirlo)
+- [ ] Aggiungere una grafica simpatica nella home, vibe da "questo è un piacere non un sdovere"
