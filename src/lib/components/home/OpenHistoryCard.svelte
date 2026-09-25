@@ -29,6 +29,12 @@
 		transition: opacity 150ms ease, transform 150ms ease;
 	}
 
+	:global(.dark) .cta-btn {
+		border-color: linear-gradient(135deg, #444 0%, #333 50%, #444 100%);
+		background-color: #121;
+		color: #fff;
+	}
+
 	.cta-btn:active {
 		opacity: 0.9;
 		transform: scale(0.98);
